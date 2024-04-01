@@ -22,6 +22,8 @@ average_degree=[16]
 ## Thresholds are chosen such that they approximately give the thresholds of [1,...,8]
 thresholds = np.linspace(0.01,0.5,16)
 
+print("thresholds : ", thresholds)
+
 ## How many realizations to do of each set of parameters
 desired_realizations= 1
 ## How many unique starting points to run the LTM from on a network
@@ -29,6 +31,9 @@ unique_network_seeds = 1
 ## The rewirering probabilities to be used in the watts-strogatz model
 ## We use from 10**-3 to 1 to get the full range of the Watts-Strogatz networks
 probabilities = np.append([0], np.logspace(-3,-0,10))
+
+print("Probabilities : ", probabilities)
+
 ## Root directory for storing networks
 network_root = 'networks/'
 
@@ -36,6 +41,8 @@ network_root = 'networks/'
 realization_counter=dict.fromkeys(probabilities,0)
 ##Cascade sizes of interest
 cascades = np.round(np.linspace(0.1,0.9,9),1)
+
+print("Cascades : ", cascades)
 ##Loop over entries in nodes and degrees, to create the desired networks
 for N in nodes:
     for k in average_degree:
