@@ -7,8 +7,10 @@ import graph_tool as gt
 import graph_tool.clustering
 import graph_tool.spectral
 import graph_tool.topology
+from pathlib import Path
+from scipy import linalg
+import random
 
-## Remove these later
 
 def ws_network(N,k,p,seed=None):
     """
@@ -30,10 +32,82 @@ def ws_network(N,k,p,seed=None):
 
     return G
 
+
+def mhk_network(N,k,p,seed=None):
+    """
+    Function for creating a Modified Holme-Kim network
+    Takes inputs:
+       N: int, Number of nodes
+       k: integer, The mean degree of nodes
+       p: Probability of rewireing of edges on the graph
+       seed: Integer for the numpy random seed function
+    Returnd:
+       G: a graphtool graph
+
+    """ 
+    if seed is None:
+        seed=np.random.randint(2**63)
+    G = nx.connected_watts_strogatz_graph(k,2,0)
+
+    
+    for n in range(k,N):
+        anchor = np.random.choice(list(G.nodes()))   
+        anchor_neigh = list(G.neighbors(anchor))
+
+        for i in range(int(k)):
+
+            if np.random.random() < p:     
+                G.add_edge(np.random.choice(anchor_neigh),n)
+
+            else: 
+                try:
+                    temp = np.random.choice(np.setdiff1d(G.nodes(),np.append(anchor_neigh,[anchor, n])))
+                    G.add_edge(temp,n)
+                except:
+                    temp = np.random.choice(anchor_neigh)
+                    G.add_edge(temp,n)
+        G.add_edge(anchor,n)
+    
+    T = gt.Graph(directed=False)
+    T.add_edge_list(np.transpose(sp.sparse.tril(nx.adjacency_matrix(G)).nonzero()))
+
+    return T
+
+def ke_network(n,m):
+
+    #https://rf.mokslasplius.lt/acchieving-high-clustering-in-scale-free-networks/
+    G = nx.connected_watts_strogatz_graph(m,m,0)
+    active_nodes = list(G.nodes())
+    for i in range(m,n):
+        for k in active_nodes:
+            G.add_edge(k,i)
+        active_nodes.append(i)
+        active_nodes.remove(random.choice(active_nodes))
+        
+    T = gt.Graph(directed=False)
+    T.add_edge_list(np.transpose(sp.sparse.tril(nx.adjacency_matrix(G)).nonzero()))
+    
+#     w = np.logspace(-4,1,100)
+#     network_type = 'ke'
+#     network_path = 'ke_nets'
+    
+#     T.vertex_properties['gains'] = get_gain(T,w,n)
+#     T.graph_properties['ID'] = T.new_graph_property('int64_t',val=int(m))
+#     T.graph_properties['k'] = T.new_graph_property('int64_t',val=int(m))
+#     T.graph_properties['ntype'] = T.new_graph_property('string',val=network_type)
+#     frequencies = T.new_graph_property('vector<double>',val=w)
+#     T.graph_properties['frequencies'] = frequencies
+#     T = get_local_clutsering(T)
+#     T = get_transitivity(T)
+#     T = get_ave_shortest_path(T)
+#     T = get_laplacian_eigenvalues(T)
+    
+    
+    return T
+
 def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter=None):
     """
-    Runs the linear threshold model on a grap_too
-l graph G. S_i(t+1) = {1 if <s_j>i~j > T otherwise 0. If the average state of neighbours of i is more than the threshold T, switch the state from 0 to 1
+    Runs the linear threshold model on a grap_tool graph G. S_i(t+1) = {1 if <s_j>i~j > T otherwise 0. If the average state of neighbours of i is more than the threshold T, switch the state from 0 to 1
 
     Takes inputs:
        G: Graph_tool graph
@@ -55,21 +129,21 @@ l graph G. S_i(t+1) = {1 if <s_j>i~j > T otherwise 0. If the average state of ne
 
     if max_iter is None:
         max_iter = G.num_vertices()
-        
+
     if not type(threshold) is list:
         [threshold]
 
     infections = []
     degree_dist = G.get_out_degrees(G.get_vertices())
 
-    T = np.array((graph_tool.spectral.adjacency(G).T / degree_dist).T)  
+    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)  
 
     for th in threshold:
         # Choose the initial infected nodes
         infected = np.zeros(G.num_vertices(),dtype=int)
         infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
         node_list = np.arange(G.num_vertices(),dtype=int)
-        
+
         #Infect the seed nodes
         infected[seed_nodes] = 1
         #Record seed nodes infected at t=-1
@@ -82,24 +156,47 @@ l graph G. S_i(t+1) = {1 if <s_j>i~j > T otherwise 0. If the average state of ne
             i = 1
         else:
             i = 0
-
         while (not all(infected) and (i < max_iter) and i-1 in infection_step):
             infected[T.dot(infected) >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
-
             i += 1
-        
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
-        
-    
+
     infected_vectormap = gt.group_vector_property(infections)
-    # G.vp['infected_step'] = infected_vectormap    
     threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)
+    # G.vp['infected_step'] = infected_vectormap    
+    # G.gp['threshold_vector'] = G.new_gp(value_type='vector<double>',val=threshold)
+    # G.gp['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
+    # G.gp['seed_nodes'] = G.new_gp(value_type='vector<double>',val=[seed_nodes])
+    
+    return infected_vectormap, seed_nodes, threshold_vector
 
 
-    return infected_vectormap,seed_nodes,threshold_vector
+def get_gain(graph,w,N):
+    L = gt.spectral.laplacian(graph,norm=False) #the build in normalized gives the symetric normalized laplacian, but we want the random walk normalized laplacian
+    
+    L = (L/L.diagonal()).T  ## Random walk normalization  D^-1 L = LD^-1 because L is symetric
 
+    L = L.toarray()
+    h2 = G.new_vertex_property('vector<double>')
+    for g in G.vertices():
+        ida = np.arange(N) != g
+        idb = np.arange(N) == g
+        A = L[np.ix_(ida,ida)].astype(complex)
+        B = L[np.ix_(ida,idb)]
+
+        H2 = []    
+        for f in w:
+            np.fill_diagonal(A,1.0+1j*f)
+            #A.setdiag(f*1j-1)
+            h = linalg.solve(A,-B)
+            
+            H2.append(linalg.norm(h)**2)
+
+        h2[g] = H2
+
+    return h2
 
 def get_laplacian_eigenvalues(G):
     """
