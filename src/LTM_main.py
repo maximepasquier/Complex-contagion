@@ -20,7 +20,7 @@ old_graph_list = []
 #Parameters for networks
 network_type = 'ws'
 nodes=[1000]
-average_degree=[16]
+average_degree=[8]
 ## Thresholds are chosen such that they approximately give the thresholds of [1,...,8]
 thresholds = np.linspace(0.01,0.5,16)
 

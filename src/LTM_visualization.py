@@ -27,12 +27,12 @@ warnings.filterwarnings("ignore")
 plt.rc('text', usetex=True)
 plt.rc('text.latex', preamble = r'\usepackage{mathptmx}')
 
-network_class = ['mhk']
+network_class = ['ws']
 
 network_root = 'LTM_networks'
-network_type = 'mhk'
+network_type = 'ws'
 N = 1000
-K = 16
+K = 8
 
 ix = pd.IndexSlice
 colors = ['darkslateblue','darkcyan','coral','blue']
@@ -64,9 +64,9 @@ hatch_regions = {'simple':{'x':[-10,0.12],'y1':[-10,-10],'y2':[10,10],'hatch':'/
 'complex':{'x':[polarization.index.get_level_values(3).unique()[8],10],'y1':[-10, -10],'y2':[10,10],'hatch':'\\\\\\\\ ','facecolor':'w','alpha':0.2,'edgecolor':'black','linewidth':1.0,'zorder':-10}}
 
 #For all values
-pick_props = {'ws':[0,1,2,3,4,5,6,7,8,9,10]}
+pick_props_ws = {'ws':[0,1,2,3,4,5,6,7,8,9,10]}
 #For the 4 values used in the paper
-pick_props = {'mhk':[0,3,6,10]}
+pick_props_mhk = {'mhk':[0,3,6,10]}
 
 
 g = {'param1':[],'param2':[],'th':[]}
@@ -75,7 +75,7 @@ network_corr.set_index(['param1','param2','th'],inplace=True)
 methods = ['pearson','spearman']
 flag_l_label=0
 for network in network_class:
-    probabilities = np.sort(mpol.loc[ix[:,:,network],:].index.get_level_values(0).unique())[pick_props[network]]
+    probabilities = np.sort(mpol.loc[ix[:,:,network],:].index.get_level_values(0).unique())[pick_props_ws[network]]
     for cas in cascades[:]:
         fig,axs = plt.subplots(figsize=(5.5*1.2,2.31*1),ncols=2,nrows=1,sharex=True,sharey=False,tight_layout=True)
         fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
@@ -114,7 +114,7 @@ for network in network_class:
             if idx < 4:
                axs[0].plot(mpol.loc[ix[p,:,network],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network],f'{cas}'],ls='-',label=pol_fig_legend_label)
             elif idx < 8:
-               axs[0].plot(mpol.loc[ix[p,:,network],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network],f'{cas}'],ls='.-',label=pol_fig_legend_label)
+               axs[0].plot(mpol.loc[ix[p,:,network],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network],f'{cas}'],ls='-.',label=pol_fig_legend_label)
             elif idx < 12:
                 axs[0].plot(mpol.loc[ix[p,:,network],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network],f'{cas}'],ls='--',label=pol_fig_legend_label)
 
@@ -167,7 +167,7 @@ for network in network_class:
         # plt.show()
         # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
         if save:
-            fig_path = f'figs/fig1/mhk/{N}/{K}/max_hermonic_center'
+            fig_path = f'figs/fig1/ws/{N}/{K}/max_hermonic_center'
             if not os.path.exists(fig_path):
                 os.makedirs(fig_path)
             fig.savefig(fig_path + f'/LTM_{cas}.pdf')

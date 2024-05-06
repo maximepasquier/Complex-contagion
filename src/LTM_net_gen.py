@@ -30,16 +30,23 @@ plt.rc('text.latex', preamble = r'\usepackage{mathptmx}')
 from network_functions import *
 
 network_root = 'LTM_networks'
-network_type = 'mhk'
+# network_type = 'mhk'
+network_type = 'ws'
 N = [1000]
-K = [16]
+K = [8]
 
 cascades = np.round(np.linspace(0.1,0.9,9),1)
-threshold = np.linspace(0.01,0.5,16)    
-
-
+threshold = np.linspace(0.01,0.5,16)
 probabilities = np.append([0], np.linspace(0.9,1,10))
-# probabilities = [0]
+
+## How many realizations to do of each set of parameters
+desired_realizations= 1
+## How many unique starting points to run the LTM from on a network
+unique_network_seeds = 1
+## Make a dict with the probabilities as keys, to count the available networks
+realization_counter=dict.fromkeys(probabilities,0)
+
+
 cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
 b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
@@ -58,31 +65,60 @@ for n in N:
         network_props = pd.DataFrame(data=b)
         network_props.set_index(['ID','p'],inplace=True)
         df = pd.DataFrame(columns = cols)
+        
+        # Count the graphs in network_path and create missing networks according to  parameters (N,k,p)
+        for graph_path in get_recursive_graph_paths(network_path):
+            g_old = gt.load_graph(str(graph_path))
+            realization_counter[g_old.gp.probability] += 1
+        
+        #### Create missing networks ####
+        for p in realization_counter:
+            ## Because only one network exists in the Watts-Strogatz
+            ## model for p=0 wer have a special case. Having many instances of the same network
+            ## will obscure the correlation results later
+            if p == 0:
+                if realization_counter[p] > 0:
+                    ## Makes the rest of the code not create any further p=0 networks
+                    realization_counter[p] = desired_realizations
+                else:
+                    realization_counter[p] = desired_realizations-1
+            # Too many networsk of a given probability has already been created
+            # This might obscure the correlation results later
+            if realization_counter[p] > desired_realizations:
+                print(f'too many networks of p={p}')
+            # Create new networks, until the disired number of realizations is achieved
+            elif realization_counter[p] < desired_realizations:
+                ## Loop until the desired number of networks is created
+                while realization_counter[p] < desired_realizations:
+                    G = ws_network(n,k,p,seed=None)
+                    # Add relevant creation properties with the graph.
+                    # Name graphs by their creation time in seconds since the epoc. This should ensure unique filenames
+                    G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
+                    G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
+                    G.graph_properties['probability'] = G.new_graph_property('double',p)
+                    G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
 
-        for prob in probabilities:
+                    G.save(f'{network_path}/{G.gp.ID}.gt')
+                    realization_counter[p] += 1
 
-            G = mhk_network(n,k,prob)
+        for graph_path in list(get_recursive_graph_paths(network_path))[:]:
+            G = gt.load_graph(str(graph_path))
 
-
-            G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
-            G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
-            G.graph_properties['probability'] = G.new_graph_property('double',prob)
-            G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
             G = get_local_clutsering(G)
             G = get_transitivity(G)
             G = get_ave_shortest_path(G)
             G = get_laplacian_eigenvalues(G)
             G = get_kirchhoff_index(G)
-            G.save(f'{network_path}/{G.gp.ID}.gt')
             
-            network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'mhk'
+            # network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'mhk'
+            network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'ws'
+            
             network_props.loc[(G.gp['ID'],G.gp['probability']),'CC'] = sum((G.vp.local_clustering.get_array()))/len(G.get_vertices())
             network_props.loc[(G.gp['ID'],G.gp['probability']),'T'] = G.gp.transitivity 
             network_props.loc[(G.gp['ID'],G.gp['probability']),'SP'] = G.gp.get('shortest_path')  
             network_props.loc[(G.gp['ID'],G.gp['probability']),'l2'] = np.sort(G.vp.eig_laplacian.a)[1]
             network_props.loc[(G.gp['ID'],G.gp['probability']),'lmax_l2'] =  np.max(G.vp.eig_laplacian.a) / np.sort(G.vp.eig_laplacian.a)[1]
             network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
-
 
             # degrees = G.degree_property_map("total")
             # max_degree_vertex = degrees.a.argmax()
@@ -96,7 +132,9 @@ for n in N:
             print('G.ID:',G.gp.ID)
 
             for seed in seed_nodes:
-                infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
+                tau = 1
+                #infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
+                infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,threshold,tau,seed_nodes=[seed])
 
                 spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                 data = np.empty((len(threshold),len(cascades),)) * np.nan
