@@ -132,7 +132,7 @@ for n in N:
             print('G.ID:',G.gp.ID)
 
             for seed in seed_nodes:
-                tau = 1
+                tau = 8
                 #infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
                 infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,threshold,tau,seed_nodes=[seed])
 

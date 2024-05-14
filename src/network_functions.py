@@ -194,7 +194,6 @@ def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=Tr
     #print(degree_dist.shape)
     
     # Alphas vector
-    #alphas = np.zeros(tau+1,dtype=float)
     # Define alphas values (different methods)
     # 1 : linear
     alphas = np.linspace(1/(tau+1), 1, tau+1)
@@ -203,17 +202,20 @@ def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=Tr
     # 3 : uniform
     alphas = np.full(tau+1,1)
     
-    # Normalization
-    normalized_linspace = alphas / np.sum(alphas)
+    #? Test : alpha for current state = 1 the rest = 0
+    #alphas = np.full(tau+1,0)
+    #alphas[-1] = 1 # last alpha = current state
     
+    # Normalization
+    alphas = alphas / np.sum(alphas)
 
     for th in threshold:
+        # Matrix of memory + current (last column)
+        memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
         # Choose the initial infected nodes
-        alpha1 = 0.4
-        alpha2 = 0.6
         infected = np.zeros(G.num_vertices(),dtype=int)
-        memory = np.zeros(G.num_vertices(),dtype=float)
-        current = np.zeros(G.num_vertices(),dtype=float)
+        #memory = np.zeros(G.num_vertices(),dtype=float)
+        #current = np.zeros(G.num_vertices(),dtype=float)
         infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
         node_list = np.arange(G.num_vertices(),dtype=int)
 
@@ -224,20 +226,25 @@ def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=Tr
 
         #Initial spread, if choosen
         if init_spread:
+            # Treshold defined to 0 for init step
             infected[T.dot(infected) > 0] = 1
-            memory = T.dot(infected)
-            current = T.dot(infected)
+            for i in range(tau+1):
+                # Memory filled with initial configuration
+                memory_matrix[:,i] = T.dot(infected)
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
             i = 1
         else:
             i = 0
         while (not all(infected) and (i < max_iter) and i-1 in infection_step):
             # Memorise <Sj> of iteration t-1
-            infected[(alpha1 * current + alpha2 * memory) >= th] = 1
-            memory = current
-            current = T.dot(infected)
-            #?test
-            #memory = current
+            infected[(np.sum(memory_matrix * alphas[:, np.newaxis].T,axis=1)) >= th] = 1
+            # Shift columns one position left
+            memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
+            # Update last column of matrix with current state
+            memory_matrix[:,-1] = T.dot(infected)
+            #? Test : Update all columns with current state
+            #for j in range(tau+1):
+            #    memory_matrix[:,j] = T.dot(infected)
             
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
