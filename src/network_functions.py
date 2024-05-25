@@ -172,7 +172,7 @@ def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter
     
     return infected_vectormap, seed_nodes, threshold_vector
 
-def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=True,max_iter=None):
+def linear_threshold_memory_model(G,threshold,tau,alphas,seed_nodes=None,init_spread=True,max_iter=None):
 
     if seed_nodes == None:
         [seed_nodes for x in np.random.choice(G.get_vertices(),1)]
@@ -192,22 +192,6 @@ def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=Tr
     T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T) 
     #print(graph_tool.spectral.adjacency(G).T.toarray().shape) 
     #print(degree_dist.shape)
-    
-    # Alphas vector
-    # Define alphas values (different methods)
-    # 1 : linear
-    alphas = np.linspace(1/(tau+1), 1, tau+1)
-    # 2 : log
-    alphas = np.logspace(1/(tau+1), 1, tau+1, base=10)
-    # 3 : uniform
-    alphas = np.full(tau+1,1)
-    
-    #? Test : alpha for current state = 1 the rest = 0
-    #alphas = np.full(tau+1,0)
-    #alphas[-1] = 1 # last alpha = current state
-    
-    # Normalization
-    alphas = alphas / np.sum(alphas)
 
     for th in threshold:
         # Matrix of memory + current (last column)
@@ -259,6 +243,27 @@ def linear_threshold_memory_model(G,threshold,tau,seed_nodes=None,init_spread=Tr
     # G.gp['seed_nodes'] = G.new_gp(value_type='vector<double>',val=[seed_nodes])
     
     return infected_vectormap, seed_nodes, threshold_vector
+
+def gen_alphas(tau):
+    # Alphas vector
+    # Define alphas values (different methods)
+    # 1 : linear
+    alphas = np.linspace(1/(tau+1), 1, tau+1)
+    # 2 : log
+    #alphas = np.logspace(1/(tau+1), 1, tau+1, base=10)
+    # 3 : uniform
+    #alphas = np.full(tau+1,1)
+    # Reverse alpha vector
+    #alphas = np.flip(alphas)
+    
+    #? Test : alpha for current state = 1 the rest = 0
+    #alphas = np.full(tau+1,0)
+    #alphas[-1] = 1 # last alpha = current state
+    
+    # Normalization
+    alphas = alphas / np.sum(alphas)
+    #print("sum of alphas is : ",np.sum(alphas))
+    return alphas
 
 
 def get_gain(graph,w,N):

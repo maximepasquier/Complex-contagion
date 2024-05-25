@@ -29,7 +29,7 @@ plt.rc('text.latex', preamble = r'\usepackage{mathptmx}')
 
 network_class = ['ws']
 
-network_root = 'LTM_networks'
+network_root = 'Evaluation'
 network_type = 'ws'
 N = 1000
 K = 8
