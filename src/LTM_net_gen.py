@@ -150,7 +150,7 @@ for n in N:
                 print('G.ID:',G.gp.ID)
 
                 for seed in seed_nodes:
-                    if(t != 0): # no memory used
+                    if(t == 0): # no memory used
                         infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
                     else: # memory used
                         infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,threshold,t,Alphas,seed_nodes=[seed])

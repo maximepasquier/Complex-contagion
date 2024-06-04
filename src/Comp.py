@@ -18,12 +18,12 @@ def compare_csv(file1_path, file2_path):
         print("The CSV files are different.")
 
 if __name__ == "__main__":    
-    baseline_props_path = f'LTM_networks/ws/1000/8_props.csv'
-    baseline_polarization_path = f'LTM_networks/ws/1000/polarization_8.csv'
-    eval_file_props_path = f'Evaluation/ws/1000/8_props_baseline.csv'
-    eval_file_polarization_path = f'Evaluation/ws/1000/polarization_8_baseline.csv'
+    #baseline_props_path = f'LTM_networks/ws/1000/8_props.csv'
+    baseline_polarization_path = f'Evaluation/ws/1000/4/2/polarization.csv'
+    #eval_file_props_path = f'Evaluation/ws/1000/8_props_baseline.csv'
+    eval_file_polarization_path = f'Evaluation/ws/1000/8/8/polarization.csv'
 
-    print("Props files :")
-    compare_csv(baseline_props_path, eval_file_props_path)
+    #print("Props files :")
+    #compare_csv(baseline_props_path, eval_file_props_path)
     print("Polarization files :")
     compare_csv(baseline_polarization_path, eval_file_polarization_path)
