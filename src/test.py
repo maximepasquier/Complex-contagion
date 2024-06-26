@@ -43,3 +43,6 @@ alphas = np.linspace(0,3,4)
 
 print(matrix * alphas[:, np.newaxis].T)
 print(np.sum(matrix * alphas[:, np.newaxis].T,axis=1))
+
+print(np.append([0], np.logspace(-3,-0,10)))
+print(np.logspace(0.0,1.0,11)/10)

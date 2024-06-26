@@ -31,9 +31,12 @@ network_class = ['ws']
 
 network_root = 'LTM_networks'
 network_type = 'ws'
-N = [1000,2000]
-K = [4,8]
-Tau = [0,1,2,4,8]
+#N = [1000,2000]
+#K = [4,8]
+#Tau = [0,1,2,4,8]
+N = [1000]
+K = [64]
+Tau = [0]
 
 for n_nodes in N:
     for neighbor_k in K:
