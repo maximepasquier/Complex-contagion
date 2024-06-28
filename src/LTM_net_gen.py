@@ -33,9 +33,10 @@ from network_functions import *
 network_root = 'LTM_networks'
 # network_type = 'mhk'
 network_class = ['ws']
-network_type = 'ws'
-N = [1000]
-K = [4,8]
+network_type = network_class[0]
+
+N = [100]
+K = [4]
 Tau = [0]
 
 cascades = np.round(np.linspace(0.1,0.9,9),1)
@@ -65,8 +66,8 @@ for n in N:
             if not os.path.exists(f'{network_root}/{network_type}/{n}/{k}/{t}'):
                 os.makedirs(f'{network_root}/{network_type}/{n}/{k}/{t}')
                 
-            if not os.path.exists(f'{network_root}/{network_type}/Networks/k={k}'):
-                os.makedirs(f'{network_root}/{network_type}/Networks/k={k}')
+            if not os.path.exists(f'{network_root}/{network_type}/Networks/n={n}/k={k}'):
+                os.makedirs(f'{network_root}/{network_type}/Networks/n={n}/k={k}')
                 
             config_path = f'{network_root}/{network_type}/{n}/{k}/{t}/config.ini'
 
@@ -86,7 +87,7 @@ for n in N:
             realization_counter=dict.fromkeys(probabilities,0)
             
             # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
-            for graph_path in get_recursive_graph_paths(f'{network_root}/{network_type}/Networks/k={k}'):
+            for graph_path in get_recursive_graph_paths(f'{network_root}/{network_type}/Networks/n={n}/k={k}'):
                 g_old = gt.load_graph(str(graph_path))
                 realization_counter[g_old.gp.probability] += 1
             
@@ -118,10 +119,10 @@ for n in N:
                         G.graph_properties['probability'] = G.new_graph_property('double',p)
                         G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
 
-                        G.save(f'{network_root}/{network_type}/Networks/k={k}/{G.gp.ID}.gt')
+                        G.save(f'{network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
                         realization_counter[p] += 1
 
-            for graph_path in list(get_recursive_graph_paths(f'{network_root}/{network_type}/Networks/k={k}'))[:]:
+            for graph_path in list(get_recursive_graph_paths(f'{network_root}/{network_type}/Networks/n={n}/k={k}'))[:]:
                 G = gt.load_graph(str(graph_path))
 
                 G = get_local_clutsering(G)
@@ -153,7 +154,9 @@ for n in N:
 
                 for seed in seed_nodes:
                     if(t == 0): # no memory used
-                        infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
+                        #infected_vectormap, selected_seed, _ = linear_threshold_model(G,threshold,seed_nodes=[seed])
+                        #* Modèle de persuasion
+                        infected_vectormap, selected_seed, _ = linear_threshold_persuasion_model(G,threshold,seed_nodes=[seed])
                     else: # memory used
                         infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,threshold,t,Alphas,seed_nodes=[seed])
 

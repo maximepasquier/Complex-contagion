@@ -46,3 +46,7 @@ print(np.sum(matrix * alphas[:, np.newaxis].T,axis=1))
 
 print(np.append([0], np.logspace(-3,-0,10)))
 print(np.logspace(0.0,1.0,11)/10)
+
+vector = np.array([0,0,1,1,0,1,0], dtype=np.float64)
+vector[vector != 0] += 0.1
+print(vector)
