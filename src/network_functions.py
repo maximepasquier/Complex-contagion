@@ -172,7 +172,7 @@ def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter
     
     return infected_vectormap, seed_nodes, threshold_vector
 
-def linear_threshold_persuasion_model(G,threshold,seed_nodes=None,init_spread=True,max_iter=None):
+def linear_threshold_persuasion_model(G,threshold,pers,seed_nodes=None,init_spread=True,max_iter=None):
 
     if seed_nodes == None:
         [seed_nodes for x in np.random.choice(G.get_vertices(),1)]
@@ -214,7 +214,7 @@ def linear_threshold_persuasion_model(G,threshold,seed_nodes=None,init_spread=Tr
             i = 0
         while (not all(infected) and (i < max_iter) and i-1 in infection_step):
             #Persuasion mechanism
-            persuasion[infected != 0] += 0.1
+            persuasion[infected != 0] += pers
             infected[T.dot(infected + persuasion) >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
