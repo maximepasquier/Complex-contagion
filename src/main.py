@@ -57,4 +57,5 @@ b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
 ltm = LTM_memory(network_root,network_class,network_type,N,K,Tau,Persuasion,cascades,threshold,probabilities,desired_realizations,unique_network_seeds,cols,b)
 
+#ltm.visualize()
 ltm.run()

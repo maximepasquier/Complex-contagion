@@ -49,7 +49,7 @@ class LTM_memory:
             for k in self.K:
                 for t in self.Tau:
                     for pers in self.Persuasion:
-                        if (t != 0): # persuasion only used when no memory !!
+                        if (t != 0 and pers != 0): # persuasion only used when no memory !!
                             continue
                         # Gen alphas
                         Alphas = gen_alphas(t)
@@ -193,7 +193,7 @@ class LTM_memory:
             for neighbor_k in self.K:
                 for tau in self.Tau:
                     for pers in self.Persuasion:
-                        if (tau != 0): # persuasion only used when no memory !!
+                        if (tau != 0 and pers != 0): # persuasion only used when no memory !!
                             continue
                         ix = pd.IndexSlice
                         colors = ['darkslateblue','darkcyan','coral','blue']
