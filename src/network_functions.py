@@ -1,16 +1,4 @@
-import numpy as np
-import networkx as nx
-import scipy as sp
-from pathlib import Path
-from scipy import sparse
-import graph_tool as gt
-import graph_tool.clustering
-import graph_tool.spectral
-import graph_tool.topology
-from pathlib import Path
-from scipy import linalg
-import random
-
+from utils import *
 
 def ws_network(N,k,p,seed=None):
     """

@@ -2,32 +2,7 @@
 Generates and Saves graphs in gt format and generates 2 csv files (props and polarization)
 '''
 
-import numpy as np
-import networkx as nx
-import scipy as sp
-from pathlib import Path
-from scipy import sparse
-import graph_tool.clustering
-import graph_tool.spectral
-import graph_tool.topology
-import matplotlib.pyplot as plt
-import graph_tool as gt
-import glob
-import pandas as pd
-import configparser
-import os
-from scipy import linalg
-from scipy.sparse import coo_array
-import time
-from matplotlib.colors import to_hex
-import matplotlib
-import sys
-import warnings
-import random
-warnings.filterwarnings("ignore")
-plt.rc('text', usetex=True)
-plt.rc('text.latex', preamble = r'\usepackage{mathptmx}')
-
+from utils import *
 from network_functions import *
 from LTM_memory_class import *
 
