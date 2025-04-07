@@ -151,7 +151,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
         # Vecteur de taille n défini à 0
         memory_persuasion = np.zeros(G.num_vertices(),dtype=float)
         # Matrix of memory + current (last column)
-        memory_inertia_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
+        memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
 
         #Initial spread, if choosen
         if init_spread:
@@ -174,7 +174,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Shift columns one position left
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
-            memory_matrix[:,-1] = T.dot(infected + persuasion)
+            memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
                 #? Test : Update all columns with current state
                 #for j in range(tau+1):
                 #    memory_matrix[:,j] = T.dot(infected)

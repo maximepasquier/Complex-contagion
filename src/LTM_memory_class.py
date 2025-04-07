@@ -49,7 +49,7 @@ class LTM_memory:
             for k in self.K:
                 for t in self.Tau:
                     for pers in self.Persuasion:
-                        if (t != 0 and pers != 0): # persuasion only used when no memory !!
+                        if (t != 0 and pers != 0): #! persuasion only used when no memory !! à contrôler
                             continue
                         # Gen alphas
                         Alphas = gen_alphas(t)
@@ -148,6 +148,7 @@ class LTM_memory:
                             print('G.ID:',G.gp.ID)
 
                             for seed in seed_nodes:
+                                '''
                                 if(t == 0): # no memory used
                                     if(pers == 0): # no persuasion
                                         #* Modèle de base
@@ -158,6 +159,9 @@ class LTM_memory:
                                 else: # memory used
                                     #* Modèle d'inertie
                                     infected_vectormap, selected_seed, _ = linear_threshold_past_model(G,self.threshold,t,Alphas,seed_nodes=[seed])
+                                '''
+                                #* Modèle complet
+                                infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,self.threshold,pers,t,Alphas,seed_nodes=[seed])
 
                                 spread = gt.ungroup_vector_property(infected_vectormap,range(len(self.threshold)))
                                 data = np.empty((len(self.threshold),len(self.cascades),)) * np.nan

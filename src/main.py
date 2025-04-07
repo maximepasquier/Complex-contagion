@@ -36,14 +36,10 @@ network_root = 'LTM_networks'
 network_class = ['ws']
 network_type = network_class[0]
 
-#N = [100,200]
-#K = [4,8]
-#Tau = [0,2]
-#Persuasion = [0,0.05]
-N = [1000]
-K = [8]
-Tau = [0]
-Persuasion = [0]
+N = [100,200]
+K = [4,8]
+Tau = [0,2]
+Persuasion = [0,0.05]
 
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 threshold = np.linspace(0.01,0.5,16)
