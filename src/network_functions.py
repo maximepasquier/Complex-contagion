@@ -105,6 +105,89 @@ def ke_network(n,m):
     
     return T
 
+def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_nodes=None,init_spread=True,max_iter=None):
+    
+    '''
+    Mémoire de persuasion : Un vecteur de taille n est initialement rempli de 0.
+    A chaque itération de la simulation les valeurs de tous les indexes dont les noeuds sont infectés, 
+    sont incrémentés d'un pas défini par l'incrément "persuasion_step"
+    
+    Mémoire d'inertie : La variable tau représente le nombre d'itérations passées qui sont prises en compte.
+    Initialement nous créons une matrice de n par tau qui équivaut à tau vecteurs avec chaque vecteur décrivant
+    l'état d'infection de tous les noeuds du système. Initialement la matrice est remplie du vecteur de configuration 
+    initial et à chaque itération les colonnes se décalent afin d'intégrer les nouveaux états calculés. Afin de calculer 
+    l'état t+1 à partir de t nous prenons en compte tau vecteur décrivant les tau itérations dans le passé. Une pondération 
+    déterminée par le vecteur "weights" permet la combinaison des différents vecteurs en un seul résultant.
+    '''
+    
+    if seed_nodes == None:
+        [seed_nodes for x in np.random.choice(G.get_vertices(),1)]
+
+    if not type(seed_nodes) is list:
+        seed_nodes = np.random.choice(G.get_vertices(),seed_nodes)
+
+    if max_iter is None:
+        max_iter = G.num_vertices()
+
+    if not type(threshold) is list:
+        [threshold]
+
+    infections = []
+    degree_dist = G.get_out_degrees(G.get_vertices())
+
+    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)  
+    
+    for th in threshold:
+        # Choose the initial infected nodes
+        infected = np.zeros(G.num_vertices(),dtype=int)
+        infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
+        node_list = np.arange(G.num_vertices(),dtype=int)
+
+        #Infect the seed nodes
+        infected[seed_nodes] = 1
+        #Record seed nodes infected at t=-1
+        infection_step[seed_nodes] = -1
+        
+        # Vecteur de taille n défini à 0
+        memory_persuasion = np.zeros(G.num_vertices(),dtype=float)
+        # Matrix of memory + current (last column)
+        memory_inertia_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
+
+        #Initial spread, if choosen
+        if init_spread:
+            infected[T.dot(infected) > 0] = 1
+            for i in range(tau+1):
+                # Memory filled with initial configuration
+                memory_matrix[:,i] = T.dot(infected)
+            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
+            i = 1
+        else:
+            i = 0
+        while (not all(infected) and (i < max_iter) and i-1 in infection_step):
+            #* Persuasion mechanism
+            if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
+                memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
+            #infected[T.dot(infected + persuasion) >= th] = 1
+            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
+            #* Inertia mechanism
+            if(tau != 0):
+                # Shift columns one position left
+                memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
+                # Update last column of matrix with current state
+            memory_matrix[:,-1] = T.dot(infected + persuasion)
+                #? Test : Update all columns with current state
+                #for j in range(tau+1):
+                #    memory_matrix[:,j] = T.dot(infected)
+            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
+            i += 1
+        infected_step = G.new_vp(value_type='int',vals=infection_step)
+        infections.append(infected_step)
+
+    infected_vectormap = gt.group_vector_property(infections)
+    threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)
+
+    return infected_vectormap, seed_nodes, threshold_vector
+
 def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter=None):
     """
     Runs the linear threshold model on a grap_tool graph G. S_i(t+1) = {1 if <s_j>i~j > T otherwise 0. If the average state of neighbours of i is more than the threshold T, switch the state from 0 to 1
@@ -230,7 +313,7 @@ def linear_threshold_persuasion_model(G,threshold,pers,seed_nodes=None,init_spre
     
     return infected_vectormap, seed_nodes, threshold_vector   
 
-def linear_threshold_memory_model(G,threshold,tau,alphas,seed_nodes=None,init_spread=True,max_iter=None):
+def linear_threshold_past_model(G,threshold,tau,alphas,seed_nodes=None,init_spread=True,max_iter=None):
 
     if seed_nodes == None:
         [seed_nodes for x in np.random.choice(G.get_vertices(),1)]

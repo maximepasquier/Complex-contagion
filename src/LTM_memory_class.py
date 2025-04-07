@@ -157,7 +157,7 @@ class LTM_memory:
                                         infected_vectormap, selected_seed, _ = linear_threshold_persuasion_model(G,self.threshold,pers,seed_nodes=[seed])
                                 else: # memory used
                                     #* Modèle d'inertie
-                                    infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,self.threshold,t,Alphas,seed_nodes=[seed])
+                                    infected_vectormap, selected_seed, _ = linear_threshold_past_model(G,self.threshold,t,Alphas,seed_nodes=[seed])
 
                                 spread = gt.ungroup_vector_property(infected_vectormap,range(len(self.threshold)))
                                 data = np.empty((len(self.threshold),len(self.cascades),)) * np.nan
