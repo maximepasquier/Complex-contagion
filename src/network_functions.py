@@ -123,13 +123,13 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
     infections = []
     degree_dist = G.get_out_degrees(G.get_vertices())
 
+    # T est la matrice d'adjacence normalisée par le degré des noeuds
     T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)  
     
     for th in threshold:
-        # Choose the initial infected nodes
         infected = np.zeros(G.num_vertices(),dtype=int)
         infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
-        node_list = np.arange(G.num_vertices(),dtype=int)
+        #node_list = np.arange(G.num_vertices(),dtype=int)
 
         #Infect the seed nodes
         infected[seed_nodes] = 1
@@ -141,6 +141,14 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
         # Matrix of memory + current (last column)
         memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
 
+        '''
+        T.dot(infected) : donne un vecteur de taille n avec la somme des états d'infection des voisins
+        T.dot(infected) > 0 : renvoie un vecteur (booléen) de taille n avec 1 si le noeud est infecté et 0 sinon
+        infected[T.dot(infected) > 0] = 1 : infecte les noeuds qui ont au moins un voisin infecté
+        infected[T.dot(infected) >= th] = 1 : infecte les noeuds qui ont au moins th % de voisins infectés
+        infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i : définit à i (le pas de temps) les indices des noeuds infectés à l'itération i. Seul les valeurs à -inf ne peuvent être modifées
+        '''
+
         #Initial spread, if choosen
         if init_spread:
             infected[T.dot(infected) > 0] = 1
@@ -151,23 +159,28 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             i = 1
         else:
             i = 0
+        '''
+        Continue la simulation tant que : 
+            1. tous les noeuds ne sont pas infectés
+            2. le nombre d'itérations max n'est pas dépassé
+            3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
+        '''
         while (not all(infected) and (i < max_iter) and i-1 in infection_step):
-            #* Persuasion mechanism
+            #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
                 memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
-            #infected[T.dot(infected + persuasion) >= th] = 1
-            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
-            #* Inertia mechanism
+            
+            #* Mécanisme d'inertie
             if(tau != 0):
                 # Shift columns one position left
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
+                
             memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-                #? Test : Update all columns with current state
-                #for j in range(tau+1):
-                #    memory_matrix[:,j] = T.dot(infected)
+            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
+            
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
 

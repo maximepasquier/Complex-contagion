@@ -1,3 +1,8 @@
+'''
+Ensemble des import pour l'exécution de tous les scripts.
+Ce fichier est à importer dans chacun des autres scripts.
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings

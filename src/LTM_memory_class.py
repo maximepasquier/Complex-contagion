@@ -1,6 +1,26 @@
 from utils import *
 from network_functions import *
 
+'''
+Classe pour les simulations des LTM.
+
+Input : 
+    - network_root : nom du dossier contenant les réseaux + résultats des simulations
+    - network_class : liste des classes de réseau
+    - N : nombre de noeuds
+    - K : nombre de voisins (moyen ??)
+    - Tau : nombre d'itérations prises en compte dans le mécanisme d'inertie
+    - Persuasion : valeurs d'influence pour la mécanisme de persuasion
+    - cascades : liste de valeurs de cascades
+    - threshold : liste de valeurs de seuil
+    - probabilities : vecteur de probabilités de rewiring (pour de multiples réseaux ws)
+    
+Output :
+    - Génère les graphes en format gt et les sauvergarde
+    - Génère les fichiers polarization.csv, props.csv et config.ini
+    - Génère les figures pour l'ensemble des paramètres
+'''
+
 
 class LTM_memory:
     def __init__(self,network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities):
@@ -16,15 +36,20 @@ class LTM_memory:
         self.cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
         self.b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
+    '''
+    def generate(self):
+        1 : Boucle sur les combinaisons de tous les paramètres
+        2 : Créer les graphes manquants
+        3 : Exécuter le modèle LTM
+        4 : Ecrire et enregistrer les fichiers polarization.csv, props.csv et config.ini
+    '''
     def generate(self):
         for network_type in self.network_class:
             for n in self.N:        
                 for k in self.K:
                     for t in self.Tau:
                         for pers in self.Persuasion:
-                            if (t != 0 and pers != 0): #! persuasion only used when no memory !! à contrôler
-                                continue
-                            # Gen alphas
+                            # Génère un vecteur de poids pour le mécanisme d'inertie
                             Alphas = gen_alphas(t)
                             # The polirization file counter
                             count = 0
@@ -43,7 +68,7 @@ class LTM_memory:
 
                             config['Configuration'] = {'cascade': self.cascades, 'threshold' : self.threshold, 'probabilities' : self.probabilities, 'Alphas' : Alphas, 'Nodes' : n, 'Neighbors' : k, 'Memory' : t, 'Network type' : network_type, 'Persuasion' : pers}
 
-                            # Write the configuration to a file
+                            # Ecrire la configuration dans un fichier
                             with open(config_path, 'w') as configfile:
                                 config.write(configfile)
 
@@ -51,11 +76,10 @@ class LTM_memory:
                             network_props.set_index(['ID','p'],inplace=True)
                             df = pd.DataFrame(columns = self.cols)
                             
-                            ## Make a dict with the probabilities as keys, to count the available networks
+                            # Make a dict with the probabilities as keys, to count the available networks
                             graph_realized=dict.fromkeys(self.probabilities,0)
                             
                             # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
-                            
                             for graph_path in get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
                                 g_old = gt.load_graph(str(graph_path))
                                 graph_realized[g_old.gp.probability] = 1
@@ -63,7 +87,7 @@ class LTM_memory:
                             
                             #### Create missing networks ####
                             for p in self.probabilities:
-                                if graph_realized[p] != 0: # déjà un graph créé pour ce rewireing
+                                if graph_realized[p] == 1: # déjà un graph créé pour ce rewiring
                                     continue
                                 G = ws_network(n,k,p,seed=None)
                                 # Add relevant creation properties with the graph.
@@ -75,37 +99,7 @@ class LTM_memory:
 
                                 G.save(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
                                 
-                                '''
-                                ## Because only one network exists in the Watts-Strogatz
-                                ## model for p=0 wer have a special case. Having many instances of the same network
-                                ## will obscure the correlation results later
-                                if p == 0:
-                                    if realization_counter[p] > 0:
-                                        ## Makes the rest of the code not create any further p=0 networks
-                                        realization_counter[p] = self.desired_realizations
-                                    else:
-                                        realization_counter[p] = self.desired_realizations-1
-                                # Too many networsk of a given probability has already been created
-                                # This might obscure the correlation results later
-                                
-                                if realization_counter[p] > self.desired_realizations:
-                                    print(f'too many networks of p={p}')
-                                # Create new networks, until the disired number of realizations is achieved
-                                elif realization_counter[p] < self.desired_realizations:
-                                    ## Loop until the desired number of networks is created
-                                    while realization_counter[p] < self.desired_realizations:
-                                        G = ws_network(n,k,p,seed=None)
-                                        # Add relevant creation properties with the graph.
-                                        # Name graphs by their creation time in seconds since the epoc. This should ensure unique filenames
-                                        G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
-                                        G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
-                                        G.graph_properties['probability'] = G.new_graph_property('double',p)
-                                        G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=self.cascades)
-
-                                        G.save(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
-                                        realization_counter[p] += 1
-                                '''
-
+                            #### Charger les graphs et lancer les simulations ####
                             for graph_path in list(get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'))[:]:
                                 G = gt.load_graph(str(graph_path))
 
@@ -115,8 +109,8 @@ class LTM_memory:
                                 G = get_laplacian_eigenvalues(G)
                                 G = get_kirchhoff_index(G)
                                 
-                                # network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'mhk'
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'ws'
+                                # network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'mhk'
                                 
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'CC'] = sum((G.vp.local_clustering.get_array()))/len(G.get_vertices())
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'T'] = G.gp.transitivity 
@@ -124,6 +118,7 @@ class LTM_memory:
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'l2'] = np.sort(G.vp.eig_laplacian.a)[1]
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'lmax_l2'] =  np.max(G.vp.eig_laplacian.a) / np.sort(G.vp.eig_laplacian.a)[1]
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
+
 
                                 # degrees = G.degree_property_map("total")
                                 # max_degree_vertex = degrees.a.argmax()
@@ -137,21 +132,9 @@ class LTM_memory:
                                 print('G.ID:',G.gp.ID)
 
                                 for seed in seed_nodes:
-                                    '''
-                                    if(t == 0): # no memory used
-                                        if(pers == 0): # no persuasion
-                                            #* Modèle de base
-                                            infected_vectormap, selected_seed, _ = linear_threshold_model(G,self.threshold,seed_nodes=[seed])
-                                        else:
-                                            #* Modèle de persuasion
-                                            infected_vectormap, selected_seed, _ = linear_threshold_persuasion_model(G,self.threshold,pers,seed_nodes=[seed])
-                                    else: # memory used
-                                        #* Modèle d'inertie
-                                        infected_vectormap, selected_seed, _ = linear_threshold_past_model(G,self.threshold,t,Alphas,seed_nodes=[seed])
-                                    '''
-                                    #* Modèle complet
-                                    infected_vectormap, selected_seed, _ = linear_threshold_memory_model(G,self.threshold,pers,t,Alphas,seed_nodes=[seed])
-
+                                    #* Modèle complet (inertie + persuasion)
+                                    infected_vectormap, _, _ = linear_threshold_memory_model(G,self.threshold,pers,t,Alphas,seed_nodes=[seed])
+                                    
                                     spread = gt.ungroup_vector_property(infected_vectormap,range(len(self.threshold)))
                                     data = np.empty((len(self.threshold),len(self.cascades),)) * np.nan
                                     for idx,th in enumerate(self.threshold):
@@ -178,6 +161,7 @@ class LTM_memory:
                                         data[idx,:] = speeds
                                         df.loc[count] = [G.gp.ID] + [G.gp.ntype] + [G.gp.probability] + [th] + [seed] + list(speeds)
                                         count += 1
+                                        
                             df.to_csv(polarization_file, sep='\t',index = False)
                             network_props.to_csv(nets_prop_file,sep='\t',mode='w',header=True)
                     
@@ -187,8 +171,6 @@ class LTM_memory:
                 for neighbor_k in self.K:
                     for tau in self.Tau:
                         for pers in self.Persuasion:
-                            if (tau != 0 and pers != 0): # persuasion only used when no memory !!
-                                continue
                             ix = pd.IndexSlice
                             colors = ['darkslateblue','darkcyan','coral','blue']
                             #Toggle hatch
