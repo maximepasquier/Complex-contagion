@@ -386,26 +386,26 @@ def linear_threshold_past_model(G,threshold,tau,alphas,seed_nodes=None,init_spre
     
     return infected_vectormap, seed_nodes, threshold_vector
 
-def gen_alphas(tau):
-    # Alphas vector
-    # Define alphas values (different methods)
+def gen_weights(tau):
+    # Weight vector
+    # Define weights values (different methods)
     # 1 : linear
-    alphas = np.linspace(1/(tau+1), 1, tau+1)
+    weights = np.linspace(1/(tau+1), 1, tau+1)
     # 2 : log
-    #alphas = np.logspace(1/(tau+1), 1, tau+1, base=10)
+    #weights = np.logspace(1/(tau+1), 1, tau+1, base=10)
     # 3 : uniform
-    #alphas = np.full(tau+1,1)
+    #weights = np.full(tau+1,1)
     # Reverse alpha vector
-    #alphas = np.flip(alphas)
+    #weights = np.flip(weights)
     
     #? Test : alpha for current state = 1 the rest = 0
-    #alphas = np.full(tau+1,0)
-    #alphas[-1] = 1 # last alpha = current state
+    #weights = np.full(tau+1,0)
+    #weights[-1] = 1 # last alpha = current state
     
     # Normalization
-    alphas = alphas / np.sum(alphas)
-    #print("sum of alphas is : ",np.sum(alphas))
-    return alphas
+    weights = weights / np.sum(weights)
+    #print("sum of weights is : ",np.sum(weights))
+    return weights
 
 
 def get_gain(graph,w,N):

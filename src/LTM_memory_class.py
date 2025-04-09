@@ -50,7 +50,7 @@ class LTM_memory:
                     for t in self.Tau:
                         for pers in self.Persuasion:
                             # Génère un vecteur de poids pour le mécanisme d'inertie
-                            Alphas = gen_alphas(t)
+                            weights = gen_weights(t)
                             # The polirization file counter
                             count = 0
                             nets_prop_file =  f'{self.network_root}/{network_type}/{n}/{k}/{t}/{pers}/props.csv'
@@ -66,7 +66,7 @@ class LTM_memory:
 
                             config = configparser.ConfigParser()
 
-                            config['Configuration'] = {'cascade': self.cascades, 'threshold' : self.threshold, 'probabilities' : self.probabilities, 'Alphas' : Alphas, 'Nodes' : n, 'Neighbors' : k, 'Memory' : t, 'Network type' : network_type, 'Persuasion' : pers}
+                            config['Configuration'] = {'cascade': self.cascades, 'threshold' : self.threshold, 'probabilities' : self.probabilities, 'Weights' : weights, 'Nodes' : n, 'Neighbors' : k, 'Memory' : t, 'Network type' : network_type, 'Persuasion' : pers}
 
                             # Ecrire la configuration dans un fichier
                             with open(config_path, 'w') as configfile:
@@ -133,7 +133,7 @@ class LTM_memory:
 
                                 for seed in seed_nodes:
                                     #* Modèle complet (inertie + persuasion)
-                                    infected_vectormap, _, _ = linear_threshold_memory_model(G,self.threshold,pers,t,Alphas,seed_nodes=[seed])
+                                    infected_vectormap, _, _ = linear_threshold_memory_model(G,self.threshold,pers,t,weights,seed_nodes=[seed])
                                     
                                     spread = gt.ungroup_vector_property(infected_vectormap,range(len(self.threshold)))
                                     data = np.empty((len(self.threshold),len(self.cascades),)) * np.nan
