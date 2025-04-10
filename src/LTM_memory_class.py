@@ -164,7 +164,14 @@ class LTM_memory:
                                         
                             df.to_csv(polarization_file, sep='\t',index = False)
                             network_props.to_csv(nets_prop_file,sep='\t',mode='w',header=True)
-                    
+    
+    '''
+    def visualize(self):
+        1 : Lis les fichiers polarization.csv et props.csv pour l'ensemble des paramètres
+        2 : Aggrège les données pour les paramètres similaires (étude statistique sur l'ensemble des seeds)
+        3 : Crée les graphes des vitesses de polarisation et des corrélations
+        4 : Sauvegarde les graphes
+    '''
     def visualize(self):
         for network_type in self.network_class:               
             for n_nodes in self.N:
@@ -186,11 +193,15 @@ class LTM_memory:
                             network_props.set_index(['ID','network','p'],inplace=True)
 
                             polarization=pd.read_csv(polarization_file,sep='\t')
-                            polarization.set_index(['ID','network','p','th','seed'],inplace=True)
+                            polarization.set_index(['ID','network','p','th','seed'],inplace=True) # crée 4 niveaux de multiindexes
 
-
+                            # joindre en faisant la moyenne de toutes les simulations avec les paramètres p, th et network identiques
+                            # Ceci fusionne toutes les occurences ou la seed change mais pas les autres paramètres
+                            # mpol est une dataframe avec comme colonnes les valeurs moyennées pour les niveau de cascades
+                            # 'p' 'th' et 'network' sont des multiindexes (pas apparent dans la df)
                             mpol = polarization.groupby(['p','th','network']).mean()
                             #Get mean polarization on network from seeds
+                            # Similaire à mpol mais avec 'ID' en plus
                             polarization_mean = polarization.groupby(level=[0,1,2,3]).mean()
 
                             print('plotting')
@@ -201,9 +212,10 @@ class LTM_memory:
                             'complex':{'x':[polarization.index.get_level_values(3).unique()[8],10],'y1':[-10, -10],'y2':[10,10],'hatch':'\\\\\\\\ ','facecolor':'w','alpha':0.2,'edgecolor':'black','linewidth':1.0,'zorder':-10}}
 
                             #For all values
-                            pick_props_ws = {'ws':[0,1,2,3,4,5,6,7,8,9,10]}
+                            probabilities_index_list = np.arange(len(self.probabilities))
+                            pick_props_ws = {'ws':probabilities_index_list}
                             #For the 4 values used in the paper
-                            pick_props_mhk = {'mhk':[0,3,6,10]}
+                            #pick_props_mhk = {'mhk':[0,3,6,10]}
 
 
                             g = {'param1':[],'param2':[],'th':[]}
@@ -310,7 +322,165 @@ class LTM_memory:
                                     print('fig saved')
                                 else:
                                     fig.show()
-                                
+    
+    '''
+    def analyze(self):
+        1 : Lis les fichiers polarization.csv et props.csv pour l'ensemble des paramètres
+        2 : 
+    '''                            
+    def analyse(self):
+        for network_type in self.network_class:               
+            for n_nodes in self.N:
+                for neighbor_k in self.K:
+                    ix = pd.IndexSlice
+                    colors = ['darkslateblue','darkcyan','coral','blue']
+                    #Toggle hatch
+                    hatching = True
+                    ## Pick which cascade sizes are consider, valid choises are 0.1,0.2,...,0.9
+                    cascades = list(map(str,list(np.round(np.linspace(0.1,0.9,9),1))))
+
+                    #* Charger les fichiers polarization.csv et props.csv pour les simulations n'utilisant pas les mécanismes de mémoire (props.csv reste le même dans les 2 cas)
+                    nets_prop_file =  f'{self.network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/{0}/props.csv'
+                    base_polarization_file = f'{self.network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/{0}/polarization.csv'
+
+
+                    network_props=pd.read_csv(nets_prop_file,sep='\t')
+                    network_props.set_index(['ID','network','p'],inplace=True)
+
+                    base_polarization=pd.read_csv(base_polarization_file,sep='\t')
+                    base_polarization.set_index(['ID','network','p','th','seed'],inplace=True) # crée 4 niveaux de multiindexes
+
+                    # joindre en faisant la moyenne de toutes les simulations avec les paramètres p, th et network identiques
+                    # Ceci fusionne toutes les occurences ou la seed change mais pas les autres paramètres
+                    # mpol est une dataframe avec comme colonnes les valeurs moyennées pour les niveau de cascades
+                    # 'p' 'th' et 'network' sont des multiindexes (pas apparent dans la df)
+                    base_mpol = base_polarization.groupby(['p','th','network']).mean()
+                    #Get mean polarization on network from seeds
+                    # Similaire à mpol mais avec 'ID' en plus
+                    polarization_mean = base_polarization.groupby(level=[0,1,2,3]).mean()
+
+                    print('plotting')
+                    save = True
+
+                    hatch_regions = {'simple':{'x':[-10,0.12],'y1':[-10,-10],'y2':[10,10],'hatch':'////','facecolor':'w','alpha':0.2,'edgecolor':'black','linewidth':1.0,'zorder':-10},
+                    'trans':{'x':[base_polarization.index.get_level_values(3).unique()[3],base_polarization.index.get_level_values(3).unique()[8]],'y1':[-10,-10],'y2':[10,10],'hatch':'_','facecolor':'w','alpha':0,'edgecolor':'black','linewidth':1.0,'zorder':-10 },
+                    'complex':{'x':[base_polarization.index.get_level_values(3).unique()[8],10],'y1':[-10, -10],'y2':[10,10],'hatch':'\\\\\\\\ ','facecolor':'w','alpha':0.2,'edgecolor':'black','linewidth':1.0,'zorder':-10}}
+
+                    #For all values
+                    probabilities_index_list = np.arange(len(self.probabilities))
+                    pick_props_ws = {'ws':probabilities_index_list}
+                    #For the 4 values used in the paper
+                    #pick_props_mhk = {'mhk':[0,3,6,10]}
+
+
+                    g = {'param1':[],'param2':[],'th':[]}
+                    network_corr = pd.DataFrame(data=g)
+                    network_corr.set_index(['param1','param2','th'],inplace=True)
+                    methods = ['pearson','spearman']
+                    flag_l_label=0
+                    probabilities = np.sort(base_mpol.loc[ix[:,:,network_type],:].index.get_level_values(0).unique())[pick_props_ws[network_type]]
+                    for cas in cascades[:]:
+                        for idx,p in enumerate(probabilities[::-1]):
+                            fig,axs = plt.subplots(figsize=(5.5*1.2,2.31*1),ncols=2,nrows=1,sharex=True,sharey=False,tight_layout=True)
+                            fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
+                            axs[0].get_xaxis().get_major_formatter().set_scientific(False)
+                            ### Plotting loop
+                            C_label = str(network_props.loc[ix[:,network_type,p],:]['CC'].mean().round(2))
+                            T_label = str(network_props.loc[ix[:,network_type,p],:]['T'].mean().round(2))
+                            l_label = str(network_props.loc[ix[:,network_type,p],:]['SP'].mean().round(1))
+                            r_label = str((network_props.loc[ix[:,network_type,p],:]['Rg'].mean()/1000).round(1))
+                            r_label = r_label + r'\! \times \! 10^{3}'
+                            title_label_string =r'${}  |  {}  |  {}  |  {} $'.format(C_label,T_label,l_label,r_label)
+                            title = "C   |   T   |   L   |   Rg"
+                            axs[0].set_title(f'Cascade size {cas} \n {title} \n {title_label_string}')
+                            #corr_fig_legend_label = [r'$C$',r'$T$',r'$\ell$',r'$R_g$']
+
+                            
+                            for tau in self.Tau:
+                                for pers in self.Persuasion:
+                                    if tau == 0 and pers == 0:
+                                        # Plot la courbe pour la simulation sans mémoire
+                                        axs[0].plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0  |  0$')
+                                        continue
+                                    #* Charger le fichier polarization.csv pour les simulations utilisant les mécanismes de mémoire
+                                    eval_polarization_file = f'{self.network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/{pers}/polarization.csv'
+                                    
+                                    eval_polarization=pd.read_csv(eval_polarization_file,sep='\t')
+                                    eval_polarization.set_index(['ID','network','p','th','seed'],inplace=True) # crée 4 niveaux de multiindexes
+                                    
+                                    eval_mpol = eval_polarization.groupby(['p','th','network']).mean()
+                                    
+                                    # Labels
+                                    tau_label = str(tau)
+                                    pers_label = str(pers)
+                                    
+                                    label_string =r'${}  |  {}$'.format(tau_label,pers_label)
+                                        
+                                    pol_fig_legend_label = label_string
+                                    
+                                    # Plot les courbes pour les simulations avec mémoire
+                                    axs[0].plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='--', label=pol_fig_legend_label)
+                                    
+
+                            # Set scale stuff
+                            axs[0].set_yscale('log')
+                            axs[0].set_ylabel(r'Polarization Speed $(v)$',labelpad=2.5)
+                            axs[0].set_xlabel(r'Threshold $( \theta )$',labelpad=2,math_fontfamily='cm')
+                            axs[0].set_ylim([1*10**-2,1.1])
+                            axs[0].set_xlim([-0.02,0.56])
+                            ## Legend and title
+                            legend0 = axs[0].legend(title=r' $  Tau \;\, |\;\;\, Pers  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
+                            # legend0 = axs[0].legend(title=r' $  C \;\, | \;\, \ell  \;\:  |\;\;\, R_{g} $', framealpha=1, facecolor='white',loc=[0.535,0.3],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
+                            legend0.get_title().set_position((1.5,0))
+                            legend0.get_title().set_fontsize('7')
+                            '''
+                            for th in base_polarization.index.get_level_values(3).unique():
+                                (network_corr.loc[('CC','p',th),'speraman'],network_corr.loc[('T','p',th),'speraman'],network_corr.loc[('SP','p',th),'speraman'],network_corr.loc[('Rg','p',th),'speraman'])   = network_props.corrwith((polarization_mean.loc[ix[:,network_type,:,th],f'{cas}'].dropna().groupby('ID').mean()),method=methods[1])[['CC','T','SP','Rg']]
+
+
+                            for idx,param in enumerate(network_corr.index.get_level_values(0).unique()):
+                                axs[1].plot(network_corr.loc[ix[param,:,:],:].index.get_level_values(2),network_corr.loc[ix[param,:,:],:],label=corr_fig_legend_label[idx],marker=['<','^','>','^'][idx%5],zorder=[3,2,1,4,5][idx%5],c=colors[idx%5],linewidth=2,markersize=[5,5,5,5][idx%5],ls=[':','--','-','--'][idx%5],markeredgewidth=[1,1,1,1][idx%5],markerfacecolor='none')
+
+                            ## set scale stuff
+                            axs[1].set_ylabel(r'Correlation $r_s(v,\chi)$',labelpad=2.5)
+                            axs[1].set_xlabel(r'Threshold $( \theta )$',labelpad=2)
+                            axs[1].set_ylim([-1.05,1.475])
+                            axs[1].set_xlim([-0.02,0.51])
+
+                            axs[0].text(-0.02,1.03,r'\textbf{(a)}',transform=axs[0].transAxes,fontsize=8)
+                            axs[1].text(-0.02,1.03,r'\textbf{(b)}',transform=axs[1].transAxes,fontsize=8)
+                            legend1 = axs[1].legend(title=r'$\chi$',loc=[1.1,0],borderpad=0.2,markerscale=1,handlelength=2,handletextpad=0.4,fontsize=7)
+
+                            legend1.get_title().set_position((0,0))
+                            legend1.get_title().set_fontsize('7')
+                            '''
+
+                            box_props = dict(alpha=1,facecolor='w',linewidth=0,zorder=100000,boxstyle='round',pad=0.5)
+                            ##Set background color to transitions
+                            if hatching:
+                                for x in hatch_regions:
+                                    for ax in axs:
+                                        ax.set_xticks([0,0.1,0.2,0.3,0.4,0.5])
+                                        ax.fill_between(**hatch_regions[x])
+                                        ax.tick_params(axis='x',labelsize=7)
+                                        ax.tick_params(axis='y',labelsize=7)
+
+                            for ax in axs:
+                                ax.text(0.055,0.5,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=ax.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
+                                ax.text(0.69,0.9,r'{\fontfamily{phv}\selectfont   \textbf{Complex}}',transform=ax.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
+                            axs[0].grid(False)
+                            axs[1].grid(False)
+                            # plt.show()
+                            # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
+                            if save:
+                                fig_path = f'figs/ws/{n_nodes}/{neighbor_k}/{p}/{tau}/{pers}'
+                                if not os.path.exists(fig_path):
+                                    os.makedirs(fig_path)
+                                fig.savefig(fig_path + f'/LTM_{cas}.pdf')
+                                print('fig saved')
+                            else:
+                                fig.show()
+    
     def run(self):
         self.generate()
         self.visualize()
