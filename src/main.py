@@ -25,15 +25,16 @@ from LTM_memory_class import *
 #* Type de réseau
 network_root = 'LTM_networks' # nom du dossier contenant les réseaux + résultats des simulations
 #+ Watts_strogatz
-probabilities = np.append([0], np.logspace(-3,-0,3)) # vecteur de probabilités de rewiring (pour de multiples réseaux ws)
+probabilities = np.append([0], np.logspace(-3,-0,10)) # vecteur de probabilités de rewiring (pour de multiples réseaux ws)
+probabilities = probabilities[[0,3,6,10]] # filtre sur les valeurs de probabilités
 network_class = ['ws'] # liste des classes de réseau
 #+ Modified Holme-Kim
 #network_class = ['mhk']
 
 #* Paramètres de réseau
 # Le nombre de configurations équivaut au produit de la longueur de l'ensemble des paramètres de réseau
-N = [100]           # nombre de noeuds
-K = [4]               # nombre de voisins (moyen ??)
+N = [5000]           # nombre de noeuds
+K = [16]               # nombre de voisins (moyen ??)
 Tau = [0,2]             # nombre d'itérations prises en compte dans le mécanisme d'inertie
 Persuasion = [0,0.05]   # valeurs d'influence pour la mécanisme de persuasion
 
@@ -43,4 +44,6 @@ threshold = np.linspace(0.01,0.5,16)            # liste de valeurs de seuil
 
 #* Simulations
 ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities)
+ltm.generate()
+ltm.visualize()
 ltm.analyse()

@@ -47,8 +47,35 @@ class LTM_memory:
         for network_type in self.network_class:
             for n in self.N:        
                 for k in self.K:
-                    for t in self.Tau:
-                        for pers in self.Persuasion:
+                    network_props = pd.DataFrame(data=self.b)
+                    network_props.set_index(['ID','p'],inplace=True)
+                    df = pd.DataFrame(columns = self.cols)
+                    
+                    # Make a dict with the probabilities as keys, to count the available networks
+                    graph_realized=dict.fromkeys(self.probabilities,0)
+                    # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
+                    for graph_path in get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
+                        g_old = gt.load_graph(str(graph_path))
+                        graph_realized[g_old.gp.probability] = 1
+                    
+                    #### Create missing networks ####
+                    for p in self.probabilities:
+                        if graph_realized[p] == 1: # déjà un graph créé pour ce rewiring
+                            continue
+                        G = ws_network(n,k,p,seed=None)
+                        # Add relevant creation properties with the graph.
+                        # Name graphs by their creation time in seconds since the epoc. This should ensure unique filenames
+                        G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
+                        G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
+                        G.graph_properties['probability'] = G.new_graph_property('double',p)
+                        G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=self.cascades)
+                        
+                        print("New graph created with ID: ", G.gp.ID)
+
+                        G.save(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
+                        
+                    for t in self.Tau: #! nécessaire d'etre si haut ??
+                        for pers in self.Persuasion: #! nécessaire d'etre si haut ??
                             # Génère un vecteur de poids pour le mécanisme d'inertie
                             weights = gen_weights(t)
                             # The polirization file counter
@@ -71,36 +98,10 @@ class LTM_memory:
                             # Ecrire la configuration dans un fichier
                             with open(config_path, 'w') as configfile:
                                 config.write(configfile)
-
-                            network_props = pd.DataFrame(data=self.b)
-                            network_props.set_index(['ID','p'],inplace=True)
-                            df = pd.DataFrame(columns = self.cols)
-                            
-                            # Make a dict with the probabilities as keys, to count the available networks
-                            graph_realized=dict.fromkeys(self.probabilities,0)
-                            
-                            # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
-                            for graph_path in get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
-                                g_old = gt.load_graph(str(graph_path))
-                                graph_realized[g_old.gp.probability] = 1
-                             
-                            
-                            #### Create missing networks ####
-                            for p in self.probabilities:
-                                if graph_realized[p] == 1: # déjà un graph créé pour ce rewiring
-                                    continue
-                                G = ws_network(n,k,p,seed=None)
-                                # Add relevant creation properties with the graph.
-                                # Name graphs by their creation time in seconds since the epoc. This should ensure unique filenames
-                                G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
-                                G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
-                                G.graph_properties['probability'] = G.new_graph_property('double',p)
-                                G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=self.cascades)
-
-                                G.save(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
                                 
                             #### Charger les graphs et lancer les simulations ####
                             for graph_path in list(get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'))[:]:
+                                print("graph path : ", str(graph_path))
                                 G = gt.load_graph(str(graph_path))
 
                                 G = get_local_clutsering(G)
@@ -120,18 +121,22 @@ class LTM_memory:
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
 
 
+                                #* Seed nodes selection
                                 # degrees = G.degree_property_map("total")
                                 # max_degree_vertex = degrees.a.argmax()
                                 # seed_nodes = np.array([max_degree_vertex])
                                 harmonic_centrality = nx.harmonic_centrality(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()))
                                 # max_harmonic_node = max(harmonic_centrality, key=harmonic_centrality.get)
                                 # seed_nodes = np.array([max_harmonic_node])
-                                seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:100]
+                                seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:100] # tous les noeuds
                                 # print(f'hc:{max_harmonic_node} VS nd:{max_degree_vertex}')
+                                selected_seeds = np.random.choice(seed_nodes, size=np.round(int(len(seed_nodes)/10)), replace=False) # run sur 10% des noeuds
 
-                                print('G.ID:',G.gp.ID)
+                                print('Running graph G.ID:',G.gp.ID)
+                                
+                                start = time.perf_counter() # start time counter
 
-                                for seed in seed_nodes:
+                                for seed in selected_seeds:
                                     #* Modèle complet (inertie + persuasion)
                                     infected_vectormap, _, _ = linear_threshold_memory_model(G,self.threshold,pers,t,weights,seed_nodes=[seed])
                                     
@@ -161,6 +166,8 @@ class LTM_memory:
                                         data[idx,:] = speeds
                                         df.loc[count] = [G.gp.ID] + [G.gp.ntype] + [G.gp.probability] + [th] + [seed] + list(speeds)
                                         count += 1
+                                end = time.perf_counter()
+                                print(f"Execution time : {end - start:.4f} secondes")
                                         
                             df.to_csv(polarization_file, sep='\t',index = False)
                             network_props.to_csv(nets_prop_file,sep='\t',mode='w',header=True)
@@ -270,7 +277,7 @@ class LTM_memory:
                                 axs[0].set_yscale('log')
                                 axs[0].set_ylabel(r'Polarization Speed $(v)$',labelpad=2.5)
                                 axs[0].set_xlabel(r'Threshold $( \theta )$',labelpad=2,math_fontfamily='cm')
-                                axs[0].set_ylim([1*10**-2,1.1])
+                                axs[0].set_ylim([1*10**-4,1.1])
                                 axs[0].set_xlim([-0.02,0.56])
                                 ## Legend and title
                                 legend0 = axs[0].legend(title=r' $  C \;\, |\;\;\, T \;\,| \;\,\: \ell  \;\:\,  |\;\;\, R_{g} $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
@@ -315,7 +322,7 @@ class LTM_memory:
                                 # plt.show()
                                 # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
                                 if save:
-                                    fig_path = f'figs/ws/{n_nodes}/{neighbor_k}/{tau}/{pers}'
+                                    fig_path = f'figs/visualize/ws/{n_nodes}/{neighbor_k}/{tau}/{pers}'
                                     if not os.path.exists(fig_path):
                                         os.makedirs(fig_path)
                                     fig.savefig(fig_path + f'/LTM_{cas}.pdf')
@@ -426,7 +433,7 @@ class LTM_memory:
                             axs[0].set_yscale('log')
                             axs[0].set_ylabel(r'Polarization Speed $(v)$',labelpad=2.5)
                             axs[0].set_xlabel(r'Threshold $( \theta )$',labelpad=2,math_fontfamily='cm')
-                            axs[0].set_ylim([1*10**-2,1.1])
+                            axs[0].set_ylim([1*10**-4,1.1])
                             axs[0].set_xlim([-0.02,0.56])
                             ## Legend and title
                             legend0 = axs[0].legend(title=r' $  Tau \;\, |\;\;\, Pers  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
@@ -473,7 +480,7 @@ class LTM_memory:
                             # plt.show()
                             # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
                             if save:
-                                fig_path = f'figs/ws/{n_nodes}/{neighbor_k}/{p}/{tau}/{pers}'
+                                fig_path = f'figs/analyse/ws/{n_nodes}/{neighbor_k}/p={p}/{tau}/{pers}'
                                 if not os.path.exists(fig_path):
                                     os.makedirs(fig_path)
                                 fig.savefig(fig_path + f'/LTM_{cas}.pdf')
@@ -484,4 +491,5 @@ class LTM_memory:
     def run(self):
         self.generate()
         self.visualize()
+        self.analyse()
         
