@@ -45,5 +45,5 @@ threshold = np.linspace(0.01,0.5,16)            # liste de valeurs de seuil
 #* Simulations
 ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities)
 ltm.generate()
-#ltm.visualize()
-#ltm.analyse()
+ltm.visualize()
+ltm.analyse()
