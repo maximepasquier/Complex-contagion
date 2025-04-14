@@ -167,7 +167,6 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
         '''
         #print("START")
         #inter_count = 0
-        tmp_mask = np.zeros_like(infected, dtype=bool) # optimisation
         while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
             #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
@@ -176,12 +175,12 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             #* Mécanisme d'inertie
             if(tau != 0):
                 # Shift columns one position left
-                np.roll(memory_matrix, shift=-1, axis=1, out=memory_matrix)
+                memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
                 
             memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
             infected[(np.sum(memory_matrix * weights[:, np.newaxis],axis=1)) >= th] = 1
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step), out=tmp_mask)] = i
+            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
             #inter_count += 1
         #print("END, inter_count = ",inter_count)
