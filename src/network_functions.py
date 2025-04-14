@@ -409,7 +409,7 @@ def gen_weights(tau):
     # Normalization
     weights = weights / np.sum(weights)
     #print("sum of weights is : ",np.sum(weights))
-    return weights
+    return weights.T
 
 def get_gain(graph,w,N):
     L = gt.spectral.laplacian(graph,norm=False) #the build in normalized gives the symetric normalized laplacian, but we want the random walk normalized laplacian
