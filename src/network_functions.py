@@ -165,6 +165,8 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             2. le nombre d'itérations max n'est pas dépassé
             3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
         '''
+        print("START")
+        inter_count = 0
         while (not all(infected) and (i < max_iter) and i-1 in infection_step):
             #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
@@ -180,6 +182,8 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
+            inter_count += 1
+        print("END, inter_count = ",inter_count)
             
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
@@ -406,7 +410,6 @@ def gen_weights(tau):
     weights = weights / np.sum(weights)
     #print("sum of weights is : ",np.sum(weights))
     return weights
-
 
 def get_gain(graph,w,N):
     L = gt.spectral.laplacian(graph,norm=False) #the build in normalized gives the symetric normalized laplacian, but we want the random walk normalized laplacian

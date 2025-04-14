@@ -51,6 +51,9 @@ class LTM_memory:
                     network_props.set_index(['ID','p'],inplace=True)
                     df = pd.DataFrame(columns = self.cols)
                     
+                    if not os.path.exists(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
+                        os.makedirs(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}')
+                    
                     # Make a dict with the probabilities as keys, to count the available networks
                     graph_realized=dict.fromkeys(self.probabilities,0)
                     # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
@@ -86,9 +89,6 @@ class LTM_memory:
                             if not os.path.exists(f'{self.network_root}/{network_type}/{n}/{k}/{t}/{pers}'):
                                 os.makedirs(f'{self.network_root}/{network_type}/{n}/{k}/{t}/{pers}')
                                 
-                            if not os.path.exists(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
-                                os.makedirs(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}')
-                                
                             config_path = f'{self.network_root}/{network_type}/{n}/{k}/{t}/{pers}/config.ini'
 
                             config = configparser.ConfigParser()
@@ -101,7 +101,7 @@ class LTM_memory:
                                 
                             #### Charger les graphs et lancer les simulations ####
                             for graph_path in list(get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'))[:]:
-                                print("graph path : ", str(graph_path))
+                                print("Loading graph : ", str(graph_path))
                                 G = gt.load_graph(str(graph_path))
 
                                 G = get_local_clutsering(G)
@@ -109,6 +109,11 @@ class LTM_memory:
                                 G = get_ave_shortest_path(G)
                                 G = get_laplacian_eigenvalues(G)
                                 G = get_kirchhoff_index(G)
+                                
+                                # Graph pas dans les paramètres de main.py
+                                if G.gp.probability not in self.probabilities:
+                                    print("Graph not in the parameters of main.py")
+                                    continue
                                 
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'ws'
                                 # network_props.loc[(G.gp['ID'],G.gp['probability']),'network'] = 'mhk'
@@ -120,7 +125,6 @@ class LTM_memory:
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'lmax_l2'] =  np.max(G.vp.eig_laplacian.a) / np.sort(G.vp.eig_laplacian.a)[1]
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
 
-
                                 #* Seed nodes selection
                                 # degrees = G.degree_property_map("total")
                                 # max_degree_vertex = degrees.a.argmax()
@@ -128,18 +132,16 @@ class LTM_memory:
                                 harmonic_centrality = nx.harmonic_centrality(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()))
                                 # max_harmonic_node = max(harmonic_centrality, key=harmonic_centrality.get)
                                 # seed_nodes = np.array([max_harmonic_node])
-                                seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:100] # tous les noeuds
+                                seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:10] # run que sur les 10 premiers noeuds avec la centralité la plus grande
                                 # print(f'hc:{max_harmonic_node} VS nd:{max_degree_vertex}')
-                                selected_seeds = np.random.choice(seed_nodes, size=np.round(int(len(seed_nodes)/10)), replace=False) # run sur 10% des noeuds
 
                                 print('Running graph G.ID:',G.gp.ID)
                                 
                                 start = time.perf_counter() # start time counter
 
-                                for seed in selected_seeds:
+                                for seed in seed_nodes:
                                     #* Modèle complet (inertie + persuasion)
                                     infected_vectormap, _, _ = linear_threshold_memory_model(G,self.threshold,pers,t,weights,seed_nodes=[seed])
-                                    
                                     spread = gt.ungroup_vector_property(infected_vectormap,range(len(self.threshold)))
                                     data = np.empty((len(self.threshold),len(self.cascades),)) * np.nan
                                     for idx,th in enumerate(self.threshold):
@@ -266,11 +268,15 @@ class LTM_memory:
 
                                     pol_fig_legend_label = label_string
                                     #Make lines distingushable
-                                    if idx < 4:
-                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=pol_fig_legend_label)
-                                    elif idx < 8:
-                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-.',label=pol_fig_legend_label)
-                                    elif idx < 12:
+                                    if idx == 0:
+                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],marker='s',markersize = 3,ls='-',label=pol_fig_legend_label)
+                                    elif idx == 1:
+                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],marker='^',markersize = 3,ls='-',label=pol_fig_legend_label)
+                                    elif idx == 2:
+                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],marker='o',markersize = 3,ls='-',label=pol_fig_legend_label)
+                                    elif idx == 3:
+                                        axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],marker='v',markersize = 3,ls='-',label=pol_fig_legend_label)
+                                    elif idx > 3:
                                         axs[0].plot(mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cas}'],ls='--',label=pol_fig_legend_label)
 
                                 # Set scale stuff
@@ -480,7 +486,7 @@ class LTM_memory:
                             # plt.show()
                             # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
                             if save:
-                                fig_path = f'figs/analyse/ws/{n_nodes}/{neighbor_k}/p={p}/{tau}/{pers}'
+                                fig_path = f'figs/analyse/ws/{n_nodes}/{neighbor_k}/p={p}'
                                 if not os.path.exists(fig_path):
                                     os.makedirs(fig_path)
                                 fig.savefig(fig_path + f'/LTM_{cas}.pdf')
