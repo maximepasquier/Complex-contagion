@@ -179,7 +179,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Update last column of matrix with current state
                 
             memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-            infected[(np.sum(memory_matrix * weights[:, np.newaxis],axis=1)) >= th] = 1
+            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
             #inter_count += 1
@@ -409,7 +409,7 @@ def gen_weights(tau):
     # Normalization
     weights = weights / np.sum(weights)
     #print("sum of weights is : ",np.sum(weights))
-    return weights.T
+    return weights
 
 def get_gain(graph,w,N):
     L = gt.spectral.laplacian(graph,norm=False) #the build in normalized gives the symetric normalized laplacian, but we want the random walk normalized laplacian
