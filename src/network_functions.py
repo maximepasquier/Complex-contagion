@@ -165,9 +165,10 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             2. le nombre d'itérations max n'est pas dépassé
             3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
         '''
-        print("START")
-        inter_count = 0
-        while (not all(infected) and (i < max_iter) and i-1 in infection_step):
+        #print("START")
+        #inter_count = 0
+        tmp_mask = np.zeros_like(infected, dtype=bool) # optimisation
+        while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
             #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
                 memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
@@ -175,15 +176,15 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             #* Mécanisme d'inertie
             if(tau != 0):
                 # Shift columns one position left
-                memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
+                np.roll(memory_matrix, shift=-1, axis=1, out=memory_matrix)
                 # Update last column of matrix with current state
                 
             memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
+            infected[(np.sum(memory_matrix * weights[:, np.newaxis],axis=1)) >= th] = 1
+            infection_step[np.logical_and(infected > 0, np.isinf(infection_step), out=tmp_mask)] = i
             i += 1
-            inter_count += 1
-        print("END, inter_count = ",inter_count)
+            #inter_count += 1
+        #print("END, inter_count = ",inter_count)
             
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
