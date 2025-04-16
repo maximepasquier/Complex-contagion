@@ -19,9 +19,9 @@ def compare_csv(file1_path, file2_path):
 
 if __name__ == "__main__":    
     #baseline_props_path = f'LTM_networks/ws/1000/8_props.csv'
-    baseline_polarization_path = f'Evaluation/ws/1000/4/2/polarization.csv'
+    baseline_polarization_path = f'final/LTM/1000/ws/16_top50.csv'
     #eval_file_props_path = f'Evaluation/ws/1000/8_props_baseline.csv'
-    eval_file_polarization_path = f'Evaluation/ws/1000/8/8/polarization.csv'
+    eval_file_polarization_path = f'LTM_networks/ws/1000/16/0/0/polarization.csv'
 
     #print("Props files :")
     #compare_csv(baseline_props_path, eval_file_props_path)

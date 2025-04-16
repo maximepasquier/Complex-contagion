@@ -138,7 +138,7 @@ class LTM_memory:
                                 # print(f'hc:{max_harmonic_node} VS nd:{max_degree_vertex}')
                                 #+ Degree centrality
                                 degrees = dict(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()).degree())
-                                percent = int(self.percent_of_seeds * self.N)
+                                percent = int(self.percent_of_seeds * n)
                                 if percent > 0:
                                     sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
                                     seed_nodes = sorted_nodes[:percent]
@@ -150,6 +150,7 @@ class LTM_memory:
                                     all_nodes = list(degrees.keys())
                                     num_nodes_to_choose = int(len(all_nodes) * 5 / 100)
                                     seed_nodes = random.sample(all_nodes, num_nodes_to_choose)
+                                #print("degrees : ", degrees.values())
 
                                 print('Running graph G.ID:',G.gp.ID)
                                 
