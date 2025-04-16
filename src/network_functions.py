@@ -124,7 +124,11 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
     degree_dist = G.get_out_degrees(G.get_vertices())
 
     # T est la matrice d'adjacence normalisée par le degré des noeuds
-    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)  
+    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T) 
+    
+    #with open("adj_matrtix.txt", "a") as fichier:
+    #    for element in T:
+    #        fichier.write(f"{element}\n") 
     
     for th in threshold:
         infected = np.zeros(G.num_vertices(),dtype=int)

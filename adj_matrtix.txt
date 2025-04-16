@@ -1,0 +1,14 @@
+[0.   0.25 0.25 0.   0.   0.   0.   0.   0.25 0.25]
+[0.25 0.   0.25 0.25 0.   0.   0.   0.   0.   0.25]
+[0.25 0.25 0.   0.25 0.25 0.   0.   0.   0.   0.  ]
+[0.   0.25 0.25 0.   0.25 0.25 0.   0.   0.   0.  ]
+[0.   0.   0.25 0.25 0.   0.25 0.25 0.   0.   0.  ]
+[0.   0.   0.   0.25 0.25 0.   0.25 0.25 0.   0.  ]
+[0.   0.   0.   0.   0.25 0.25 0.   0.25 0.25 0.  ]
+[0.   0.   0.   0.   0.   0.25 0.25 0.   0.25 0.25]
+[0.25 0.   0.   0.   0.   0.   0.25 0.25 0.   0.25]
+[0.25 0.25 0.   0.   0.   0.   0.   0.25 0.25 0.  ]
+
+Adj matrice test pour une simulation N=10, K=4, seed_node = 1 noeud
+Je voulais voir si on avait des 1 ou des 0 sur la diagonale principale -> 0
+Le noeud "central" n'est pas pris en compte pour son calcul de seuillage
