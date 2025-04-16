@@ -23,7 +23,7 @@ Output :
 
 
 class LTM_memory:
-    def __init__(self,network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities):
+    def __init__(self,network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities,percent_of_seeds):
         self.network_root = network_root
         self.network_class = network_class
         self.N = N
@@ -33,6 +33,7 @@ class LTM_memory:
         self.cascades = cascades
         self.threshold = threshold
         self.probabilities = probabilities
+        self.percent_of_seeds = percent_of_seeds
         self.cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
         self.b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
@@ -126,14 +127,29 @@ class LTM_memory:
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
 
                                 #* Seed nodes selection
+                                #+ Harmonic centrality
                                 # degrees = G.degree_property_map("total")
                                 # max_degree_vertex = degrees.a.argmax()
                                 # seed_nodes = np.array([max_degree_vertex])
-                                harmonic_centrality = nx.harmonic_centrality(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()))
+                                ##harmonic_centrality = nx.harmonic_centrality(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()))
                                 # max_harmonic_node = max(harmonic_centrality, key=harmonic_centrality.get)
                                 # seed_nodes = np.array([max_harmonic_node])
-                                seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:10] # run que sur les 10 premiers noeuds avec la centralité la plus grande
+                                ##seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:10] # run que sur les 10 premiers noeuds avec la centralité la plus grande
                                 # print(f'hc:{max_harmonic_node} VS nd:{max_degree_vertex}')
+                                #+ Degree centrality
+                                degrees = dict(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()).degree())
+                                percent = int(self.percent_of_seeds * self.N)
+                                if percent > 0:
+                                    sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
+                                    seed_nodes = sorted_nodes[:percent]
+                                elif percent < 0: #! erreur ? car selected_nodes[percent:] donne les 95% 
+                                    sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
+                                    seed_nodes = sorted_nodes[percent:]
+                                else:
+                                    #randomly select 5% of the nodes if you put '0' at percentage
+                                    all_nodes = list(degrees.keys())
+                                    num_nodes_to_choose = int(len(all_nodes) * 5 / 100)
+                                    seed_nodes = random.sample(all_nodes, num_nodes_to_choose)
 
                                 print('Running graph G.ID:',G.gp.ID)
                                 

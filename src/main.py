@@ -33,17 +33,21 @@ network_class = ['ws'] # liste des classes de réseau
 
 #* Paramètres de réseau
 # Le nombre de configurations équivaut au produit de la longueur de l'ensemble des paramètres de réseau
-N = [5000]          # nombre de noeuds
-K = [16]            # nombre de voisins (moyen ??)
-Tau = [0,2]           # nombre d'itérations prises en compte dans le mécanisme d'inertie
-Persuasion = [0,0.05]    # valeurs d'influence pour la mécanisme de persuasion
+N = [1000]          # nombre de noeuds
+K = [8,16]            # nombre de voisins (moyen ??)
+Tau = [0]           # nombre d'itérations prises en compte dans le mécanisme d'inertie
+Persuasion = [0]    # valeurs d'influence pour la mécanisme de persuasion
 
 #* Paramètres de simulation
 cascades = np.round(np.linspace(0.1,0.9,9),1)   # liste de valeurs de cascades
 threshold = np.linspace(0.01,0.5,16)            # liste de valeurs de seuil
+# Choix random de 5% pour le seed_nodes si percent_of_seeds = 0
+# Si percent_of_seeds > 0, alors on prend le pourcentage de noeuds avec le plus grand degré
+# Si percent_of_seeds < 0, alors on prend un pourcentage de noeuds avec le plus petit degré
+percent_of_seeds = 0.05                                  # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
 
 #* Simulations
-ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities)
+ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities,percent_of_seeds)
 ltm.generate()
 ltm.visualize()
 ltm.analyse()
