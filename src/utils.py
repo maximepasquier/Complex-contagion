@@ -25,6 +25,7 @@ from scipy.sparse import coo_array
 import time
 from matplotlib.colors import to_hex
 import sys
+from numba import njit
 warnings.filterwarnings("ignore")
 plt.rc('text', usetex=True)
 plt.rc('text.latex', preamble = r'\usepackage{mathptmx}')

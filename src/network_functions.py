@@ -93,6 +93,12 @@ def ke_network(n,m):
     
     return T
 
+@njit
+def compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i):
+    memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
+    infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
+    infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
+
 def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_nodes=None,init_spread=True,max_iter=None):
     
     '''
@@ -181,9 +187,11 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Shift columns one position left
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
-                
+            # FCT numba
+            #compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i)
             memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-            infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
+            #infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
+            infected[memory_matrix @ weights >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
             #inter_count += 1
