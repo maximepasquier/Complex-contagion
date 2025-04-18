@@ -166,6 +166,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Memory filled with initial configuration
                 memory_matrix[:,i] = T.dot(infected)
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
+            mask = np.array(infection_step == i-1)
             i = 1
         else:
             i = 0
@@ -177,6 +178,8 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
         '''
         #print("START")
         #inter_count = 0
+        #? test
+        memory_matrix_old = memory_matrix.copy()
         while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
             #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
@@ -187,11 +190,18 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Shift columns one position left
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
-            # FCT numba
-            #compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i)
-            memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-            #infected[(np.sum(memory_matrix * weights[:, np.newaxis].T,axis=1)) >= th] = 1
-            infected[memory_matrix @ weights >= th] = 1
+            #* Standard implementation
+            # Ne regarder que les infection_step qui ont la valeur i-1. Ceci signifie que les noeuds dont la valeur est i-1 à l'indice, viennent d'être infectés à l'itération précédente
+            # Des noeuds fraichement infectés on veut regarder si ils parviennent à infecter d'autres noeuds
+            # Sans recalculer tous les noeuds !!!
+            memory_matrix_old[:,-1] = T.dot(infected + memory_persuasion)
+            mask = np.logical_or(np.array(infection_step == i-1), mask)
+            tmp = T[mask].dot(infected + memory_persuasion)
+            #memory_matrix[mask,-1] = tmp[mask]
+            np.place(memory_matrix[:,-1],mask,tmp)
+            #print(memory_matrix[:,-1])
+            print(np.array_equal(memory_matrix, memory_matrix_old))
+            infected[memory_matrix_old @ weights >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
             #inter_count += 1
