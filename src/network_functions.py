@@ -130,11 +130,34 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
     degree_dist = G.get_out_degrees(G.get_vertices())
 
     # T est la matrice d'adjacence normalisée par le degré des noeuds
-    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T) 
+    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)
+    
+    #print(T)
+    
+    is_symmetric = np.array_equal(T, T.T)
+    
+    with open("matrice_T.txt", 'w') as f:
+        for row in T:
+            # Formater chaque valeur : 4 caractères, 1 chiffre après la virgule
+            line = ' '.join(f"{val:4.2f}" for val in row)
+            f.write(line + '\n')
+            
+    with open("matrice_T.T.txt", 'w') as f:
+        for row in T.T:
+            line = ' '.join(f"{val:4.2f}" for val in row)
+            f.write(line + '\n')
+            
+    #print(degree_dist)
+
+    #print("La matrice est symétrique ?" , is_symmetric) 
     
     #with open("adj_matrtix.txt", "a") as fichier:
     #    for element in T:
     #        fichier.write(f"{element}\n") 
+    
+    #? Test de somme à 1 de la matrice T
+    print(T.sum(axis=1))
+    print(T.sum(axis=0))
     
     for th in threshold:
         infected = np.zeros(G.num_vertices(),dtype=int)
@@ -200,7 +223,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             #memory_matrix[mask,-1] = tmp[mask]
             np.place(memory_matrix[:,-1],mask,tmp)
             #print(memory_matrix[:,-1])
-            print(np.array_equal(memory_matrix, memory_matrix_old))
+            #print(np.array_equal(memory_matrix, memory_matrix_old))
             infected[memory_matrix_old @ weights >= th] = 1
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             i += 1
