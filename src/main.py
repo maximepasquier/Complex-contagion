@@ -34,7 +34,7 @@ network_class = ['ws'] # liste des classes de réseau
 
 #* Paramètres de réseau
 # Le nombre de configurations équivaut au produit de la longueur de l'ensemble des paramètres de réseau
-N = [40]          # nombre de noeuds
+N = [100]          # nombre de noeuds
 K = [4]            # nombre de voisins (moyen ??)
 Tau = [0]           # nombre d'itérations prises en compte dans le mécanisme d'inertie
 Persuasion = [0]    # valeurs d'influence pour la mécanisme de persuasion
