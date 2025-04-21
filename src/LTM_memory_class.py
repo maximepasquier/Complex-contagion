@@ -141,7 +141,8 @@ class LTM_memory:
                                 percent = int(self.percent_of_seeds * n)
                                 if percent > 0:
                                     sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
-                                    seed_nodes = sorted_nodes[:percent]
+                                    #seed_nodes = sorted_nodes[:percent]
+                                    seed_nodes = [sorted_nodes[0]]
                                 elif percent < 0: #! erreur ? car selected_nodes[percent:] donne les 95% 
                                     sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
                                     seed_nodes = sorted_nodes[percent:]
