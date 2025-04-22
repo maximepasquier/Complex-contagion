@@ -216,7 +216,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
                 
-            Opti = True
+            Opti = False
             if(not Opti):
                 #* Standard implementation
                 memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
@@ -224,7 +224,6 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             else:
                 #* Implémentation optimisée
-                
                 # Ne regarder que les infection_step qui ont la valeur i-1. Ceci signifie que les noeuds dont la valeur est i-1 à l'indice, viennent d'être infectés à l'itération précédente
                 # Des noeuds fraichement infectés on veut regarder si ils parviennent à infecter d'autres noeuds. Il faut tout de même regarder les voisins de ces noeuds aussi...
                 # Sans recalculer tous les noeuds !!!
@@ -240,7 +239,6 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 #print("computing infected + infected_step")
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
-                
                 #compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i)
             i += 1   
         infected_step = G.new_vp(value_type='int',vals=infection_step)

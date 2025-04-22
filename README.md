@@ -1,3 +1,2 @@
-# Complex-contagion
+# Contagion complexe
 
-2 nd initial commit

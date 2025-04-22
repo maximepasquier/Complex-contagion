@@ -127,6 +127,7 @@ class LTM_memory:
                                 network_props.loc[(G.gp['ID'],G.gp['probability']),'Rg'] =  n*np.sum(1/np.sort(G.vp.eig_laplacian.a)[1:])
 
                                 #* Seed nodes selection
+                                
                                 #+ Harmonic centrality
                                 # degrees = G.degree_property_map("total")
                                 # max_degree_vertex = degrees.a.argmax()
@@ -136,13 +137,13 @@ class LTM_memory:
                                 # seed_nodes = np.array([max_harmonic_node])
                                 ##seed_nodes = sorted(harmonic_centrality, key=harmonic_centrality.get, reverse=True)[:10] # run que sur les 10 premiers noeuds avec la centralité la plus grande
                                 # print(f'hc:{max_harmonic_node} VS nd:{max_degree_vertex}')
+                                
                                 #+ Degree centrality
                                 degrees = dict(nx.from_numpy_array(gt.spectral.adjacency(G).T.toarray()).degree())
                                 percent = int(self.percent_of_seeds * n)
                                 if percent > 0:
                                     sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
-                                    #seed_nodes = sorted_nodes[:percent]
-                                    seed_nodes = [sorted_nodes[0]]
+                                    seed_nodes = sorted_nodes[:percent]
                                 elif percent < 0: #! erreur ? car selected_nodes[percent:] donne les 95% 
                                     sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
                                     seed_nodes = sorted_nodes[percent:]
@@ -251,6 +252,10 @@ class LTM_memory:
                             methods = ['pearson','spearman']
                             flag_l_label=0
                             probabilities = np.sort(mpol.loc[ix[:,:,network_type],:].index.get_level_values(0).unique())[pick_props_ws[network_type]]
+                            
+                            #! Select que cascade de 30%
+                            cascades = [cascades[2]]
+                            
                             for cas in cascades[:]:
                                 fig,axs = plt.subplots(figsize=(5.5*1.2,2.31*1),ncols=2,nrows=1,sharex=True,sharey=False,tight_layout=True)
                                 fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
@@ -410,6 +415,10 @@ class LTM_memory:
                     methods = ['pearson','spearman']
                     flag_l_label=0
                     probabilities = np.sort(base_mpol.loc[ix[:,:,network_type],:].index.get_level_values(0).unique())[pick_props_ws[network_type]]
+                    
+                    #! Select que cascade de 30%
+                    cascades = [cascades[2]]
+                            
                     for cas in cascades[:]:
                         for idx,p in enumerate(probabilities[::-1]):
                             fig,axs = plt.subplots(figsize=(5.5*1.2,2.31*1),ncols=2,nrows=1,sharex=True,sharey=False,tight_layout=True)
@@ -504,10 +513,10 @@ class LTM_memory:
                             # plt.show()
                             # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
                             if save:
-                                fig_path = f'figs/analyse/ws/{n_nodes}/{neighbor_k}/p={p}'
+                                fig_path = f'figs/analyse/ws/{n_nodes}/{neighbor_k}'
                                 if not os.path.exists(fig_path):
                                     os.makedirs(fig_path)
-                                fig.savefig(fig_path + f'/LTM_{cas}.pdf')
+                                fig.savefig(fig_path + f'/LTM_c={cas}_p={p}.pdf')
                                 print('fig saved')
                             else:
                                 fig.show()
