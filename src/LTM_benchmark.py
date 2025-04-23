@@ -240,11 +240,13 @@ percentage = [int(n/20)]# [int(n/20),int(n/10),0,-int(n/20),-int(n/10)] # number
 
 for k in ks:
     for centrality,percen in zip(selector,percentage):
+        if not os.path.exists(f'LTM_bench/{network_type}/{n}/{k}'):
+            os.makedirs(f'LTM_bench/{network_type}/{n}/{k}')
         print(centrality,percen)
         cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
         df = pd.DataFrame(columns = cols)
-        polarization_file = f'final/{model}/{n}/{network_type}/{k}_{centrality}{percen}.csv'
-        network_path = f'final/{model}/{n}/{network_type}/{k}'
+        polarization_file = f'LTM_bench/{network_type}/{n}/{k}/{centrality}{percen}.csv'
+        network_path = f'Networks/{network_type}/{n}/{k}'
         count = 0
         for graph_loc in glob.glob(network_path+'/*.gt'):
             G = gt.load_graph(graph_loc)

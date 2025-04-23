@@ -50,7 +50,7 @@ percent_of_seeds = 0.05 # pourcentage de noeuds pour seed_nodes (exemple : int(n
 
 #* Simulations
 ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities,percent_of_seeds)
-ltm.generate_networks() # Génération des réseaux en fonction de N, K et probabilities
+#ltm.generate_networks() # Génération des réseaux en fonction de N, K et probabilities
 #ltm.simulate() # Run les simulations sur les réseaux 
 #ltm.visualize() # Visualisation des résultats
 #ltm.analyse() # Visualisation des résultats pour les mécanismes de persuasion et d'inertie
