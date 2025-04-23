@@ -20,7 +20,6 @@ def ws_network(N,k,p,seed=None):
 
     return G
 
-
 def mhk_network(N,k,p,seed=None):
     """
     Function for creating a Modified Holme-Kim network
@@ -314,137 +313,7 @@ def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter
     # G.gp['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
     # G.gp['seed_nodes'] = G.new_gp(value_type='vector<double>',val=[seed_nodes])
     
-    return infected_vectormap, seed_nodes, threshold_vector
-
-def linear_threshold_persuasion_model(G,threshold,pers,seed_nodes=None,init_spread=True,max_iter=None):
-
-    if seed_nodes == None:
-        [seed_nodes for x in np.random.choice(G.get_vertices(),1)]
-
-    if not type(seed_nodes) is list:
-        seed_nodes = np.random.choice(G.get_vertices(),seed_nodes)
-
-    if max_iter is None:
-        max_iter = G.num_vertices()
-
-    if not type(threshold) is list:
-        [threshold]
-
-    infections = []
-    degree_dist = G.get_out_degrees(G.get_vertices())
-
-    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T) 
-    #print(T)
-    
-    for th in threshold:
-        # Choose the initial infected nodes
-        infected = np.zeros(G.num_vertices(),dtype=int)
-        infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
-        node_list = np.arange(G.num_vertices(),dtype=int)
-
-        #Infect the seed nodes
-        infected[seed_nodes] = 1
-        #Record seed nodes infected at t=-1
-        infection_step[seed_nodes] = -1
-        
-        persuasion = np.zeros(G.num_vertices(),dtype=float)
-
-        #Initial spread, if choosen
-        if init_spread:
-            infected[T.dot(infected) > 0] = 1
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
-            i = 1
-        else:
-            i = 0
-        while (not all(infected) and (i < max_iter) and i-1 in infection_step):
-            #Persuasion mechanism
-            persuasion[infected != 0] += pers
-            infected[T.dot(infected + persuasion) >= th] = 1
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
-            i += 1
-        infected_step = G.new_vp(value_type='int',vals=infection_step)
-        infections.append(infected_step)
-
-    infected_vectormap = gt.group_vector_property(infections)
-    threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)
-    # G.vp['infected_step'] = infected_vectormap    
-    # G.gp['threshold_vector'] = G.new_gp(value_type='vector<double>',val=threshold)
-    # G.gp['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
-    # G.gp['seed_nodes'] = G.new_gp(value_type='vector<double>',val=[seed_nodes])
-    
-    return infected_vectormap, seed_nodes, threshold_vector   
-
-def linear_threshold_past_model(G,threshold,tau,alphas,seed_nodes=None,init_spread=True,max_iter=None):
-
-    if seed_nodes == None:
-        [seed_nodes for x in np.random.choice(G.get_vertices(),1)]
-
-    if not type(seed_nodes) is list:
-        seed_nodes = np.random.choice(G.get_vertices(),seed_nodes)
-
-    if max_iter is None:
-        max_iter = G.num_vertices()
-
-    if not type(threshold) is list:
-        [threshold]
-
-    infections = []
-    degree_dist = G.get_out_degrees(G.get_vertices())
-
-    T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T) 
-    #print(graph_tool.spectral.adjacency(G).T.toarray().shape) 
-    #print(degree_dist.shape)
-
-    for th in threshold:
-        # Matrix of memory + current (last column)
-        memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
-        # Choose the initial infected nodes
-        infected = np.zeros(G.num_vertices(),dtype=int)
-        #memory = np.zeros(G.num_vertices(),dtype=float)
-        #current = np.zeros(G.num_vertices(),dtype=float)
-        infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
-        node_list = np.arange(G.num_vertices(),dtype=int)
-
-        #Infect the seed nodes
-        infected[seed_nodes] = 1
-        #Record seed nodes infected at t=-1
-        infection_step[seed_nodes] = -1
-
-        #Initial spread, if choosen
-        if init_spread:
-            # Treshold defined to 0 for init step
-            infected[T.dot(infected) > 0] = 1
-            for i in range(tau+1):
-                # Memory filled with initial configuration
-                memory_matrix[:,i] = T.dot(infected)
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
-            i = 1
-        else:
-            i = 0
-        while (not all(infected) and (i < max_iter) and i-1 in infection_step):
-            # Memorise <Sj> of iteration t-1
-            infected[(np.sum(memory_matrix * alphas[:, np.newaxis].T,axis=1)) >= th] = 1
-            # Shift columns one position left
-            memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
-            # Update last column of matrix with current state
-            memory_matrix[:,-1] = T.dot(infected)
-            #? Test : Update all columns with current state
-            #for j in range(tau+1):
-            #    memory_matrix[:,j] = T.dot(infected)
-            
-            infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
-            i += 1
-        infected_step = G.new_vp(value_type='int',vals=infection_step)
-        infections.append(infected_step)
-
-    infected_vectormap = gt.group_vector_property(infections)
-    threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)
-    # G.vp['infected_step'] = infected_vectormap    
-    # G.gp['threshold_vector'] = G.new_gp(value_type='vector<double>',val=threshold)
-    # G.gp['cascades'] = G.new_gp(value_type='vector<double>',val=cascades)
-    # G.gp['seed_nodes'] = G.new_gp(value_type='vector<double>',val=[seed_nodes])
-    
-    return infected_vectormap, seed_nodes, threshold_vector
+    return infected_vectormap, seed_nodes, threshold_vector  
 
 def gen_weights(tau):
     # Weight vector
@@ -458,7 +327,7 @@ def gen_weights(tau):
     # Reverse alpha vector
     #weights = np.flip(weights)
     
-    #? Test : alpha for current state = 1 the rest = 0
+    #? Test : weight for current state = 1 the rest = 0
     #weights = np.full(tau+1,0)
     #weights[-1] = 1 # last alpha = current state
     

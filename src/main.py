@@ -23,7 +23,7 @@ from LTM_memory_class import *
 
 
 #* Type de réseau
-network_root = 'LTM_networks' # nom du dossier contenant les réseaux + résultats des simulations
+network_root = 'LTM' # nom du dossier contenant les réseaux + résultats des simulations
 #+ Watts_strogatz
 probabilities = np.append([0], np.logspace(-3,-0,10)) # vecteur de probabilités de rewiring (pour de multiples réseaux ws)
 probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
@@ -50,6 +50,7 @@ percent_of_seeds = 0.05 # pourcentage de noeuds pour seed_nodes (exemple : int(n
 
 #* Simulations
 ltm = LTM_memory(network_root,network_class,N,K,Tau,Persuasion,cascades,threshold,probabilities,percent_of_seeds)
-ltm.generate()
-ltm.visualize()
-ltm.analyse()
+ltm.generate_networks() # Génération des réseaux en fonction de N, K et probabilities
+#ltm.simulate() # Run les simulations sur les réseaux 
+#ltm.visualize() # Visualisation des résultats
+#ltm.analyse() # Visualisation des résultats pour les mécanismes de persuasion et d'inertie

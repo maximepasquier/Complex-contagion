@@ -38,45 +38,53 @@ class LTM_memory:
         self.b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
     '''
-    def generate(self):
-        1 : Boucle sur les combinaisons de tous les paramètres
-        2 : Créer les graphes manquants
-        3 : Exécuter le modèle LTM
-        4 : Ecrire et enregistrer les fichiers polarization.csv, props.csv et config.ini
+    def generate_networks(self):
+        1 : Boucle sur les combinaisons des paramètres N, K et probabilities
+        2 : Crée les graphes manquants
     '''
-    def generate(self):
+    def generate_networks(self):
         for network_type in self.network_class:
             for n in self.N:        
                 for k in self.K:
-                    network_props = pd.DataFrame(data=self.b)
-                    network_props.set_index(['ID','p'],inplace=True)
-                    df = pd.DataFrame(columns = self.cols)
-                    
-                    if not os.path.exists(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
-                        os.makedirs(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}')
-                    
+                    # Crée le dossier pour les réseaux
+                    if not os.path.exists(f'{self.network_root}/{network_type}/Networks/{n}/{k}'):
+                        os.makedirs(f'{self.network_root}/{network_type}/Networks/{n}/{k}')
                     # Make a dict with the probabilities as keys, to count the available networks
                     graph_realized=dict.fromkeys(self.probabilities,0)
                     # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
-                    for graph_path in get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}'):
+                    for graph_path in get_recursive_graph_paths(f'{self.network_root}/{network_type}/Networks/{n}/{k}'):
                         g_old = gt.load_graph(str(graph_path))
                         graph_realized[g_old.gp.probability] = 1
-                    
                     #### Create missing networks ####
                     for p in self.probabilities:
                         if graph_realized[p] == 1: # déjà un graph créé pour ce rewiring
                             continue
                         G = ws_network(n,k,p,seed=None)
                         # Add relevant creation properties with the graph.
-                        # Name graphs by their creation time in seconds since the epoc. This should ensure unique filenames
-                        G.graph_properties['ID'] = G.new_graph_property('int64_t',val=int(time.time()*1000))
+                        # Nomme les graph en fonction de p
+                        G.graph_properties['ID'] = G.new_graph_property('string',val="Network_p="+str(p))
                         G.graph_properties['ntype'] = G.new_graph_property('string',val=network_type)
                         G.graph_properties['probability'] = G.new_graph_property('double',p)
                         G.graph_properties['cascades'] = G.new_gp(value_type='vector<double>',val=self.cascades)
                         
                         print("New graph created with ID: ", G.gp.ID)
 
-                        G.save(f'{self.network_root}/{network_type}/Networks/n={n}/k={k}/{G.gp.ID}.gt')
+                        G.save(f'{self.network_root}/{network_type}/Networks/{n}/{k}/{G.gp.ID}.gt')
+                    
+    '''
+    def generate(self):
+        1 : Boucle sur les combinaisons de tous les paramètres
+        2 : Créer les graphes manquants
+        3 : Exécuter le modèle LTM
+        4 : Ecrire et enregistrer les fichiers polarization.csv, props.csv et config.ini
+    '''
+    def simulate(self):
+        for network_type in self.network_class:
+            for n in self.N:        
+                for k in self.K:
+                    network_props = pd.DataFrame(data=self.b)
+                    network_props.set_index(['ID','p'],inplace=True)
+                    df = pd.DataFrame(columns = self.cols)
                         
                     for t in self.Tau: #! nécessaire d'etre si haut ??
                         for pers in self.Persuasion: #! nécessaire d'etre si haut ??
