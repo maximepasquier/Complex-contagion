@@ -12,7 +12,7 @@ Crée uniquement les réseaux absent dans les sous-dossiers
 '''
 
 #* Paramètres de réseau
-network_root = 'LTM'
+network_root = 'Networks'
 probabilities = np.append([0], np.logspace(-3,-0,10))
 probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
 network_class = ['ws']
@@ -24,12 +24,12 @@ for network_type in network_class:
     for n in N:        
         for k in K:
             # Crée le dossier pour les réseaux
-            if not os.path.exists(f'{network_root}/{network_type}/Networks/{n}/{k}'):
-                os.makedirs(f'{network_root}/{network_type}/Networks/{n}/{k}')
+            if not os.path.exists(f'{network_root}/{network_type}/{n}/{k}'):
+                os.makedirs(f'{network_root}/{network_type}/{n}/{k}')
             # Make a dict with the probabilities as keys, to count the available networks
             graph_realized=dict.fromkeys(probabilities,0)
             # Count the graphs in network path and create missing networks according to  parameters (N,k,p)
-            for graph_path in get_recursive_graph_paths(f'{network_root}/{network_type}/Networks/{n}/{k}'):
+            for graph_path in get_recursive_graph_paths(f'{network_root}/{network_type}/{n}/{k}'):
                 g_old = gt.load_graph(str(graph_path))
                 graph_realized[g_old.gp.probability] = 1
             #### Create missing networks ####
@@ -46,4 +46,4 @@ for network_type in network_class:
                 
                 print("New graph created with ID: ", G.gp.ID)
 
-                G.save(f'{network_root}/{network_type}/Networks/{n}/{k}/{G.gp.ID}.gt')
+                G.save(f'{network_root}/{network_type}/{n}/{k}/{G.gp.ID}.gt')
