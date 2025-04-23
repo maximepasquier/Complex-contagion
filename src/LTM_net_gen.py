@@ -3,12 +3,17 @@ from network_functions import *
 
 '''
 Génère les réseaux en fonction des paramètres
+Crée uniquement les réseaux absent dans les sous-dossiers
+
+Input :
     - network_root : nom du dossier contenant les réseaux
     - network_class : liste des classes de réseau
     - N : liste de nombre de noeuds
     - K : liste de nombre de voisins moyen
     - probabilities : liste de probabilités de rewiring
-Crée uniquement les réseaux absent dans les sous-dossiers
+Output :
+    - Crée une arborescence de dossiers pour les réseaux 
+    - Crée des réseaux (.gt) pour l'ensemble des paramètres
 '''
 
 #* Paramètres de réseau

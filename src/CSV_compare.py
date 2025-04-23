@@ -1,5 +1,16 @@
 import csv
 
+'''
+Compare two CSV files and print if they are identical or different.
+
+Input :
+    - csv1 : path to the first CSV file
+    - csv2 : path to the second CSV file
+    
+Output :
+    - Print if the CSV files are identical or different
+'''
+
 def read_csv(file_path):
     data = []
     with open(file_path, 'r') as file:
@@ -17,13 +28,7 @@ def compare_csv(file1_path, file2_path):
     else:
         print("The CSV files are different.")
 
-if __name__ == "__main__":    
-    #baseline_props_path = f'LTM_networks/ws/1000/8_props.csv'
-    baseline_polarization_path = f'LTM_bench/ws/1000/16/top50.csv'
-    #eval_file_props_path = f'Evaluation/ws/1000/8_props_baseline.csv'
-    eval_file_polarization_path = f'LTM/ws/1000/16/0/0/polarization.csv'
-
-    #print("Props files :")
-    #compare_csv(baseline_props_path, eval_file_props_path)
-    print("Polarization files :")
-    compare_csv(baseline_polarization_path, eval_file_polarization_path)
+if __name__ == "__main__":
+    csv1 = f'LTM_bench/ws/1000/16/top50.csv'
+    csv2 = f'LTM/ws/1000/16/0/0/polarization.csv'
+    compare_csv(csv1, csv2)

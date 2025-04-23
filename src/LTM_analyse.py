@@ -1,6 +1,26 @@
 from utils import *
 from network_functions import *
 
+'''
+Input :
+    - network_root : nom du dossier contenant les réseaux
+    - network_class : liste des classes de réseau
+    - N : liste de nombre de noeuds
+    - K : liste de nombre de voisins moyen
+    - Persuasion : liste de biais de persuasion
+    - Tau : liste de taille de la mémoire
+    - cascades : liste de taille de cascade
+    
+Output :
+    - plots...
+
+Le script analyse les résultats des simulations de LTM pour l'ensemble des paramètres spécifés et produit des graphiques 
+de la vitesse de polarisation en fonction du seuil. Les courbes se regroupent suivant :
+    - Les mêmes réseaux
+    - Les mêmes cascades
+    - Des paramètres de mémoire différents (Tau et Persuasion)
+'''  
+
 #* Paramètres de simulation
 network_root = 'LTM'
 network_class = ['ws']
@@ -9,13 +29,7 @@ K = [8,16]
 Tau = [0,1,2]
 Persuasion = [0,0.05,0.1]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
-cascades = [cascades[2]]
-
-'''
-def analyze(self):
-1 : Lis les fichiers polarization.csv et props.csv pour l'ensemble des paramètres
-2 : 
-'''  
+cascades = [cascades[2]] # select only 30% cascades
 
 #* Plotting
 for network_type in network_class:               

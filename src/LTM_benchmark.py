@@ -1,5 +1,9 @@
 # The code goes through the graphs and generate bunch of poliarization files
 
+'''
+Benchmark code used for validation
+'''
+
 import numpy as np
 import networkx as nx
 import scipy as sp

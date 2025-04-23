@@ -23,7 +23,7 @@ from LTM_memory_class import *
 
 
 #* Type de réseau
-network_root = 'LTM' # nom du dossier contenant les réseaux + résultats des simulations
+network_root = 'LTM_main' # nom du dossier contenant les réseaux + résultats des simulations
 #+ Watts_strogatz
 probabilities = np.append([0], np.logspace(-3,-0,10)) # vecteur de probabilités de rewiring (pour de multiples réseaux ws)
 probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
