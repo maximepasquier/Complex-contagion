@@ -2,22 +2,40 @@ from utils import *
 from network_functions import *
 
 '''
+Input :
+    - network_root : nom du dossier contenant les réseaux
+    - network_class : liste des classes de réseau
+    - N : liste de nombre de noeuds
+    - K : liste de nombre de voisins moyen
+    - Persuasion : liste de biais de persuasion
+    - Tau : liste de taille de la mémoire
+    - cascades : liste de taille de cascade
+    - threshold : liste de seuils
+    - percent_of_seeds : pourcentage de noeuds pour seed_nodes
+    
+Output :
+    - Arborescence de dossiers contenant les résultats des simulations (polarization.csv et props.csv)
+    - Polarization.csv : fichier contenant les vitesses de polarisations
+    - Props.csv : fichier contenant les propriétés du réseau
 
-'''
+Le script run les analyses sur les réseaux défini par les paramètres de simulations ainsi que ceux générés par le script LTM_net_gen.py.
+Des listes de N, K, Tau et Persuasion, toutes les cominaison de configurations sont générées et exécutées. 
+Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{network_type}/{N}/{K}/{Tau}/{Persuasion}
+'''  
 
 #* Paramètres de simulation
 network_root = 'LTM'
 network_class = ['ws']
-N = [1000]
-K = [8,16]
-Tau = [0,1,2,4,8,16,32,64]
-Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
+N = [100]
+K = [4]
+Tau = [16]
+Persuasion = [0]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 threshold = np.linspace(0.01,0.5,16)
 # Choix random de 5% pour le seed_nodes si percent_of_seeds = 0
 # Si percent_of_seeds > 0, alors on prend le pourcentage de noeuds avec le plus grand degré
 # Si percent_of_seeds < 0, alors on prend un pourcentage de noeuds avec le plus petit degré
-percent_of_seeds = 0.05 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
+percent_of_seeds = 0.01 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
 
 # Paramètres de dataframe
 cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()

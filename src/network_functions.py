@@ -219,6 +219,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             if(not Opti):
                 #* Standard implementation
                 memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
+                test_val = memory_matrix @ weights
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             else:

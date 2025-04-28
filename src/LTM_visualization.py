@@ -26,8 +26,8 @@ network_root = 'LTM'
 network_class = ['ws']
 N = [1000]
 K = [8,16]
-Tau = [0,1,2]
-Persuasion = [0,0.05,0.1]
+Tau = [0,1,2,4,8,16,32,64]
+Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 cascades = [cascades[2]]
 

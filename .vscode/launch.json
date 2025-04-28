@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Run main.py in src",
+            "name": "Python: Run LTM_simulate.py in src",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
-            "cwd": "${workspaceFolder}/src",
+            "program": "${workspaceFolder}/src/LTM_simulate.py",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         }
     ]

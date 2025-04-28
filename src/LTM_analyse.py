@@ -26,8 +26,8 @@ network_root = 'LTM'
 network_class = ['ws']
 N = [1000]
 K = [8,16]
-Tau = [0,1,2]
-Persuasion = [0,0.05,0.1]
+Tau = [0,1,2,4,8,16,32,64]
+Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 cascades = [cascades[2]] # select only 30% cascades
 
@@ -86,7 +86,7 @@ for network_type in network_class:
                     
             for cas in cascades[:]:
                 for idx,p in enumerate(probabilities[::-1]):
-                    fig,axs = plt.subplots(figsize=(7,3),sharex=True,sharey=False,tight_layout=True)
+                    fig,axs = plt.subplots(figsize=(7,5),sharex=True,sharey=False,tight_layout=True)
                     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
                     axs.get_xaxis().get_major_formatter().set_scientific(False)
                     ### Plotting loop
