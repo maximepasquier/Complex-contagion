@@ -190,8 +190,20 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             2. le nombre d'itérations max n'est pas dépassé
             3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
         '''
-        proportion_true = []
-        while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
+        #proportion_true = []
+        #while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
+        waiting_counter = 0
+        waiting_counter_max = 10
+        end_simulation = False
+        while (not np.all(infected) and (i < max_iter) and not end_simulation):
+            #+ Test de stagnation
+            if i-1 not in infection_step:
+                waiting_counter += 1
+            else:
+                waiting_counter = 0
+            if waiting_counter >= waiting_counter_max:
+                end_simulation = True
+                #print("Stagnation detected")
             #print("iteration : ",i)
             #* Mécanisme de persuasion
             if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
