@@ -92,31 +92,18 @@ def ke_network(n,m):
     
     return T
 
+# La fonction compute() modifie les valeurs de memory_matrix qui est ici passée en référence car Numpy
+# La fonction doit faire ceci : memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
 @njit
-def compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i):
-    #* Implémentation optimisée
-    # Ne regarder que les infection_step qui ont la valeur i-1. Ceci signifie que les noeuds dont la valeur est i-1 à l'indice, viennent d'être infectés à l'itération précédente
-    # Des noeuds fraichement infectés on veut regarder si ils parviennent à infecter d'autres noeuds. Il faut tout de même regarder les voisins de ces noeuds aussi...
-    # Sans recalculer tous les noeuds !!!
-    # Ne regarder que les voisins non-infectés des noeuds infectés
-    #print("computing index_noeud_hors_infection")
-    #index_noeud_hors_infection = ~np.any(T[infected == 1] != 0, axis=0) # indices des noeuds non-infectés pas en contact avec des noeuds infectés
-    index_noeud_hors_infection = np.ones(len(infected), dtype=bool_)
-    t_size = T[infected == 1].shape
-    for colonne in range(t_size[1]):
-        for ligne in range(t_size[0]):
-            if T[infected == 1][ligne,colonne] != 0:
-                index_noeud_hors_infection[colonne] = False 
-                break  
-    # np.full_like(infected, True, dtype=bool), init tout les noeuds à True pour le calcul
-    #print("computing index_noeud_non_infectes_en_contact")
-    index_noeud_non_infectes_en_contact = np.logical_xor(np.ones(len(infected), dtype=bool_),np.logical_or(infected.astype(bool_),index_noeud_hors_infection)) # noeuds non-infectés en contact avec des noeuds infectés
-    #np.place(memory_matrix[:,-1],index_noeud_non_infectes_en_contact, T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion))
-    #print("computing memory_matrix")
-    memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
-    #print("computing infected + infected_step")
-    infected[memory_matrix @ weights >= th] = 1
-    infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
+def compute(memory_matrix,T,infected,memory_persuasion,index_noeud_non_infectes_en_contact):
+    #* Implémentation optimisée du dot product
+    for ligne in range(T.shape[0]):
+        if index_noeud_non_infectes_en_contact[ligne]:
+            somme = 0.0
+            for colonne in range(T.shape[1]):
+                somme += T[ligne, colonne] * (infected[colonne] + memory_persuasion[colonne])
+            memory_matrix[ligne, -1] = somme
+    
 
 def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_nodes=None,init_spread=True,max_iter=None):
     
@@ -203,6 +190,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
             2. le nombre d'itérations max n'est pas dépassé
             3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
         '''
+        proportion_true = []
         while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
             #print("iteration : ",i)
             #* Mécanisme de persuasion
@@ -217,9 +205,10 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 
             Opti = False
             if(not Opti):
+                # Test avec un masque qui vaut true partout
+                #mask = np.full_like(infected, True, dtype=bool)
                 #* Standard implementation
                 memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
-                test_val = memory_matrix @ weights
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             else:
@@ -231,18 +220,29 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 #print("computing index_noeud_hors_infection")
                 index_noeud_hors_infection = ~np.any(T[infected == 1] != 0, axis=0) # indices des noeuds non-infectés pas en contact avec des noeuds infectés
                 # np.full_like(infected, True, dtype=bool), init tout les noeuds à True pour le calcul
-                #print("computing index_noeud_non_infectes_en_contact")
                 index_noeud_non_infectes_en_contact = np.logical_xor(np.full_like(infected, True, dtype=bool),np.logical_or(infected.astype(bool),index_noeud_hors_infection)) # noeuds non-infectés en contact avec des noeuds infectés
+                #proportion_true.append((sum(index_noeud_non_infectes_en_contact) / len(index_noeud_non_infectes_en_contact)) * 100)
+                #print(f"Proportion de True : {proportion_true[-1]:.2f}%")
                 #np.place(memory_matrix[:,-1],index_noeud_non_infectes_en_contact, T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion))
                 #print("computing memory_matrix")
-                memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
+                
+                #+ Option 1 : sous dot product sur une sous matrice => très très lent
+                #memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
+                #+ Option 2 : utiliser Numba pour faire manuellement le dot product
+                compute(memory_matrix,T,infected,memory_persuasion,index_noeud_non_infectes_en_contact)
+                
                 #print("computing infected + infected_step")
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
-                #compute(memory_matrix,T,infected,memory_persuasion,weights,th,infection_step,i)
             i += 1   
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
+        '''
+        with open("prop_true.txt", 'a') as f:
+            for valeur in proportion_true:
+                f.write(f"{valeur} ")
+            f.write('\n')
+        '''
 
     infected_vectormap = gt.group_vector_property(infections)
     threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)

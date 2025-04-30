@@ -19,10 +19,11 @@ Output :
 #* Paramètres de réseau
 network_root = 'Networks'
 probabilities = np.append([0], np.logspace(-3,-0,10))
-probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
+#probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
+probabilities = [probabilities[0]]
 network_class = ['ws']
-N = [100]
-K = [4,8]
+N = [5000]
+K = [4]
 
 #* Création des réseaux
 for network_type in network_class:

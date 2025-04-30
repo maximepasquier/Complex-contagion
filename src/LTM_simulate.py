@@ -26,16 +26,16 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 #* Paramètres de simulation
 network_root = 'LTM'
 network_class = ['ws']
-N = [100]
+N = [5000]
 K = [4]
-Tau = [16]
+Tau = [0]
 Persuasion = [0]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 threshold = np.linspace(0.01,0.5,16)
 # Choix random de 5% pour le seed_nodes si percent_of_seeds = 0
 # Si percent_of_seeds > 0, alors on prend le pourcentage de noeuds avec le plus grand degré
 # Si percent_of_seeds < 0, alors on prend un pourcentage de noeuds avec le plus petit degré
-percent_of_seeds = 0.01 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
+percent_of_seeds = 0.0002 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
 
 # Paramètres de dataframe
 cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
