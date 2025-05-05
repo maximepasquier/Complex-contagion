@@ -46,10 +46,10 @@ for network_type in network_class:
         for k in K:
             network_props = pd.DataFrame(data=b)
             network_props.set_index(['ID','p'],inplace=True)
-            df = pd.DataFrame(columns = cols)
                 
             for t in Tau:
                 for pers in Persuasion:
+                    df = pd.DataFrame(columns = cols) # dataframe pour les vitesses de polarisation
                     print()
                     print("Running simulation : network_type =",network_type,", N =",n,", K =",k,", t =",t,", pers =",pers)
                     print()
@@ -58,6 +58,7 @@ for network_type in network_class:
                     # The polirization file counter
                     count = 0
                     nets_prop_file =  f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/props.csv'
+                    #waiting_vector_file =  f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/waiting_vector.csv'
                     polarization_file = f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/polarization.csv'
                     ## If the network_path does not exist it is created
                     if not os.path.exists(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}'):
@@ -124,9 +125,15 @@ for network_type in network_class:
                             seed_nodes = random.sample(all_nodes, num_nodes_to_choose)
                         #print("degrees : ", degrees.values())
 
+                        # Liste des vecteurs waiting
+                        waiting_vector_list = []
+                        first_seed_only = True
                         for seed in seed_nodes:
                             #* Modèle complet (inertie + persuasion)
-                            infected_vectormap, _, _ = linear_threshold_memory_model(G,threshold,pers,t,weights,seed_nodes=[seed])
+                            infected_vectormap,waiting_dict, _, _ = linear_threshold_memory_model(G,threshold,pers,t,weights,seed_nodes=[seed])
+                            if first_seed_only:
+                                first_seed_only = False
+                                waiting_vector_list.append(waiting_vector_list)
                             spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                             data = np.empty((len(threshold),len(cascades),)) * np.nan
                             for idx,th in enumerate(threshold):
@@ -155,6 +162,16 @@ for network_type in network_class:
                                 count += 1
                         end = time.perf_counter()
                         print(f"Execution time for loading + running graph {G.gp.ID} : {end - start:.4f} secondes")
+                        #waiting_df = pd.DataFrame(waiting_vector_list_list[0])
+                        # Convertir les numpy.array en liste Python
+                        waiting_dict_serializable = {
+                            key: [arr.tolist() for arr in value] for key, value in waiting_dict.items()
+                        }
+
+                        # Écrire dans un fichier JSON
+                        with open(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/waiting_dct_p={G.gp.ID}.json', 'w') as f:
+                            json.dump(waiting_dict_serializable, f, indent=2)
+                        #waiting_df.to_csv(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/waiting_vector_p={G.gp.ID}.csv',mode='w')
                                 
                     df.to_csv(polarization_file, sep='\t',index = False)
                     network_props.to_csv(nets_prop_file,sep='\t',mode='w',header=True)

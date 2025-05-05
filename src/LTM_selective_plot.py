@@ -143,7 +143,7 @@ for idx,p in enumerate(curve_data[0][2][::-1]):
         pol_fig_legend_label = label_string
         
         # Plot les courbes pour les simulations avec mémoire
-        axs.plot(mpol.loc[ix[p,:,network_type],f'{cascade}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cascade}'],ls='--', label=pol_fig_legend_label)
+        axs.plot(mpol.loc[ix[p,:,network_type],f'{cascade}'].index.get_level_values(1),mpol.loc[ix[p,:,network_type],f'{cascade}'],ls='-', label=pol_fig_legend_label)
                             
 
         # Set scale stuff
@@ -167,7 +167,7 @@ for idx,p in enumerate(curve_data[0][2][::-1]):
                     axs.tick_params(axis='x',labelsize=7)
                     axs.tick_params(axis='y',labelsize=7)
 
-            axs.text(0.055,0.5,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
+            axs.text(0.055,0.9,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
             axs.text(0.69,0.9,r'{\fontfamily{phv}\selectfont   \textbf{Complex}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
         axs.grid(False)
         axs.grid(False)
