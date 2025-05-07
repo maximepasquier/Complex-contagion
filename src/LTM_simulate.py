@@ -125,15 +125,9 @@ for network_type in network_class:
                             seed_nodes = random.sample(all_nodes, num_nodes_to_choose)
                         #print("degrees : ", degrees.values())
 
-                        # Liste des vecteurs waiting
-                        waiting_vector_list = []
-                        first_seed_only = True
                         for seed in seed_nodes:
                             #* Modèle complet (inertie + persuasion)
                             infected_vectormap,waiting_dict, _, _ = linear_threshold_memory_model(G,threshold,pers,t,weights,seed_nodes=[seed])
-                            if first_seed_only:
-                                first_seed_only = False
-                                waiting_vector_list.append(waiting_vector_list)
                             spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                             data = np.empty((len(threshold),len(cascades),)) * np.nan
                             for idx,th in enumerate(threshold):
@@ -164,11 +158,19 @@ for network_type in network_class:
                         print(f"Execution time for loading + running graph {G.gp.ID} : {end - start:.4f} secondes")
                         #waiting_df = pd.DataFrame(waiting_vector_list_list[0])
                         # Convertir les numpy.array en liste Python
+                        # Select que la dernière seed pour l'écriture dans les json
+                        data_json = {}
+                        spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
+                        for idx,th in enumerate(threshold):
+                            val,counts = np.unique(spread[idx].a,return_counts=True)
+                            data_json[str(th)] = {"val": val.tolist(), "counts": counts.tolist()}
                         waiting_dict_serializable = {
                             key: [arr.tolist() for arr in value] for key, value in waiting_dict.items()
                         }
 
                         # Écrire dans un fichier JSON
+                        with open(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/infected_p={G.gp.ID}.json', "w") as f:
+                            json.dump(data_json, f, indent=2)
                         with open(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/waiting_dct_p={G.gp.ID}.json', 'w') as f:
                             json.dump(waiting_dict_serializable, f, indent=2)
                         #waiting_df.to_csv(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/waiting_vector_p={G.gp.ID}.csv',mode='w')
