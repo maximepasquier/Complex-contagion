@@ -24,11 +24,11 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 '''  
 
 #* Paramètres de simulation
-network_root = 'LTM_latence'
+network_root = 'LTM'
 network_class = ['ws']
 N = [1000]
 K = [16]
-Tau = [32,64]
+Tau = [64]
 Persuasion = [0]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 threshold = np.linspace(0.01,0.5,16)
@@ -154,11 +154,22 @@ for network_type in network_class:
                                 data[idx,:] = speeds
                                 df.loc[count] = [G.gp.ID] + [G.gp.ntype] + [G.gp.probability] + [th] + [seed] + list(speeds)
                                 count += 1
+                                #? Test : get que pour la seed 95 afin de voir un trou dans la vitesse de polarisation
+                                if(seed == 95):
+                                    data_json = {}
+                                    spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
+                                    for idx,th in enumerate(threshold):
+                                        val,counts = np.unique(spread[idx].a,return_counts=True)
+                                        data_json[str(th)] = {"val": val.tolist(), "counts": counts.tolist()}
+                                    waiting_dict_serializable = {
+                                        key: [arr.tolist() for arr in value] for key, value in waiting_dict.items()
+                                    }
                         end = time.perf_counter()
                         print(f"Execution time for loading + running graph {G.gp.ID} : {end - start:.4f} secondes")
                         #waiting_df = pd.DataFrame(waiting_vector_list_list[0])
                         # Convertir les numpy.array en liste Python
                         # Select que la dernière seed pour l'écriture dans les json
+                        '''
                         data_json = {}
                         spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                         for idx,th in enumerate(threshold):
@@ -167,6 +178,7 @@ for network_type in network_class:
                         waiting_dict_serializable = {
                             key: [arr.tolist() for arr in value] for key, value in waiting_dict.items()
                         }
+                        '''
 
                         # Écrire dans un fichier JSON
                         with open(f'{network_root}/{network_type}/{n}/{k}/{t}/{pers}/infected_p={G.gp.ID}.json', "w") as f:
