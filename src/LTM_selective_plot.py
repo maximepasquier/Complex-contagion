@@ -53,10 +53,10 @@ curve_list.append(("LTM","ws",1000,16,32,0.5))
 curve_list.append(("LTM","ws",1000,16,64,0.1))
 curve_list.append(("LTM","ws",1000,16,64,0.5))
 '''
-curve_list.append(("LTM","ws",1000,16,32,0))
-curve_list.append(("LTM_latence","ws",1000,16,32,0))
-curve_list.append(("LTM","ws",1000,16,64,0))
-curve_list.append(("LTM_latence","ws",1000,16,64,0))
+curve_list.append(("LTM","ws",1000,16,32))
+curve_list.append(("LTM_latence","ws",1000,16,32))
+curve_list.append(("LTM","ws",1000,16,64))
+curve_list.append(("LTM_latence","ws",1000,16,64))
 
 #* Read CSV files and get data
 curve_data = []
@@ -66,10 +66,10 @@ for curve in curve_list:
     n_nodes = curve[2]
     neighbor_k = curve[3]
     tau = curve[4]
-    pers = curve[5]
+    #pers = curve[5]
     #* Charger les fichiers polarization.csv et props.csv pour la curve
-    nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/{pers}/props.csv'
-    polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/{pers}/polarization.csv'
+    nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/props.csv'
+    polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/polarization.csv'
 
     network_props=pd.read_csv(nets_prop_file,sep='\t')
     network_props.set_index(['ID','network','p'],inplace=True)
@@ -136,9 +136,9 @@ for idx,p in enumerate(curve_data[0][2][::-1]):
                 
         # Labels
         tau_label = str(curve[4])
-        pers_label = str(curve[5])
+        #pers_label = str(curve[5])
         
-        label_string =r'${}  |  {}$'.format(tau_label,pers_label)
+        label_string =r'${}'.format(tau_label)
             
         pol_fig_legend_label = label_string
         

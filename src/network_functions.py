@@ -95,17 +95,18 @@ def ke_network(n,m):
 # La fonction compute() modifie les valeurs de memory_matrix qui est ici passée en référence car Numpy
 # La fonction doit faire ceci : memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
 @njit
-def compute(memory_matrix,T,infected,memory_persuasion,index_noeud_non_infectes_en_contact):
+def compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact,memory_persuasion=None):
     #* Implémentation optimisée du dot product
     for ligne in range(T.shape[0]):
         if index_noeud_non_infectes_en_contact[ligne]:
             somme = 0.0
             for colonne in range(T.shape[1]):
-                somme += T[ligne, colonne] * (infected[colonne] + memory_persuasion[colonne])
+                #somme += T[ligne, colonne] * (infected[colonne] + memory_persuasion[colonne])
+                somme += T[ligne, colonne] * (infected[colonne])
             memory_matrix[ligne, -1] = somme
     
 
-def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_nodes=None,init_spread=True,max_iter=None):
+def linear_threshold_memory_model(G,threshold,tau,weights,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None):
     
     '''
     Mémoire de persuasion : Un vecteur de taille n est initialement rempli de 0.
@@ -164,7 +165,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
         infection_step[seed_nodes] = -1
         
         # Vecteur de taille n défini à 0
-        memory_persuasion = np.zeros(G.num_vertices(),dtype=float)
+        #memory_persuasion = np.zeros(G.num_vertices(),dtype=float)
         # Matrix of memory + current (last column)
         memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
         # Vecteur de waiting counter pour la stagnation
@@ -217,9 +218,9 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 end_simulation = True
                 #print("Stagnation detected")
             #print("iteration : ",i)
-            #* Mécanisme de persuasion
-            if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
-                memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
+            # Mécanisme de persuasion
+            #if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive
+            #    memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
             
             #* Mécanisme d'inertie
             if(tau != 0):
@@ -232,7 +233,8 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 # Test avec un masque qui vaut true partout
                 #mask = np.full_like(infected, True, dtype=bool)
                 #* Standard implementation
-                memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
+                #memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
+                memory_matrix[:,-1] = T.dot(infected)
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             else:
@@ -253,7 +255,7 @@ def linear_threshold_memory_model(G,threshold,persuasion_step,tau,weights,seed_n
                 #+ Option 1 : sous dot product sur une sous matrice => très très lent
                 #memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
                 #+ Option 2 : utiliser Numba pour faire manuellement le dot product
-                compute(memory_matrix,T,infected,memory_persuasion,index_noeud_non_infectes_en_contact)
+                compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact)
                 
                 #print("computing infected + infected_step")
                 infected[memory_matrix @ weights >= th] = 1

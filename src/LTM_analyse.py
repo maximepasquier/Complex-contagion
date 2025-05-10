@@ -27,7 +27,7 @@ network_class = ['ws']
 N = [1000]
 K = [8,16]
 Tau = [0,1,2,4,8,16,32,64]
-Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
+#Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 cascades = [cascades[2]] # select only 30% cascades
 
@@ -102,29 +102,29 @@ for network_type in network_class:
 
                     
                     for tau in Tau:
-                        for pers in Persuasion:
-                            if tau == 0 and pers == 0:
-                                # Plot la courbe pour la simulation sans mémoire
-                                axs.plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0  |  0$')
-                                continue
-                            #* Charger le fichier polarization.csv pour les simulations utilisant les mécanismes de mémoire
-                            eval_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/{pers}/polarization.csv'
+                        #for pers in Persuasion:
+                        if tau == 0 and pers == 0:
+                            # Plot la courbe pour la simulation sans mémoire
+                            axs.plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0  |  0$')
+                            continue
+                        #* Charger le fichier polarization.csv pour les simulations utilisant les mécanismes de mémoire
+                        eval_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}//polarization.csv'
+                        
+                        eval_polarization=pd.read_csv(eval_polarization_file,sep='\t')
+                        eval_polarization.set_index(['ID','network','p','th','seed'],inplace=True) # crée 4 niveaux de multiindexes
+                        
+                        eval_mpol = eval_polarization.groupby(['p','th','network']).mean()
+                        
+                        # Labels
+                        tau_label = str(tau)
+                        #pers_label = str(pers)
+                        
+                        label_string =r'${}'.format(tau_label)
                             
-                            eval_polarization=pd.read_csv(eval_polarization_file,sep='\t')
-                            eval_polarization.set_index(['ID','network','p','th','seed'],inplace=True) # crée 4 niveaux de multiindexes
-                            
-                            eval_mpol = eval_polarization.groupby(['p','th','network']).mean()
-                            
-                            # Labels
-                            tau_label = str(tau)
-                            pers_label = str(pers)
-                            
-                            label_string =r'${}  |  {}$'.format(tau_label,pers_label)
-                                
-                            pol_fig_legend_label = label_string
-                            
-                            # Plot les courbes pour les simulations avec mémoire
-                            axs.plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='--', label=pol_fig_legend_label)
+                        pol_fig_legend_label = label_string
+                        
+                        # Plot les courbes pour les simulations avec mémoire
+                        axs.plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='--', label=pol_fig_legend_label)
                             
 
                     # Set scale stuff
