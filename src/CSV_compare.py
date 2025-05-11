@@ -29,6 +29,6 @@ def compare_csv(file1_path, file2_path):
         print("The CSV files are different.")
 
 if __name__ == "__main__":
-    csv1 = f'LTM/ws/1000/16/32/0/polarization.csv'
-    csv2 = f'LTM/ws/1000/16/32/0/polarization.csv'
+    csv1 = f'LTM_bench/ws/1000/16/top50.csv'
+    csv2 = f'LTM/ws/1000/16/0/polarization.csv'
     compare_csv(csv1, csv2)

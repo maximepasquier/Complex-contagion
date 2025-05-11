@@ -1,7 +1,7 @@
 from utils import *
 from itertools import islice
 # Étape 1 : Charger les données depuis le fichier JSON
-with open(f'LTM_latence/ws/1000/16/32/0/waiting_dct_p=Network_p=0.21544346900318823.json', 'r') as f:
+with open(f'LTM/ws/1000/16/32/waiting_dct_p=Network_p=0.21544346900318823.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/waiting_dct_p=Network_p=0.1.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/waiting_dct_p=Network_p=0.021544346900318832.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/waiting_dct_p=Network_p=0.0.json', 'r') as f:

@@ -87,7 +87,7 @@ for network_type in network_class:
                     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
                     axs.get_xaxis().get_major_formatter().set_scientific(False)
                     ### Plotting loop
-                    axs.set_title(f'Cascade size {cas}')
+                    axs.set_title(f'Polarization speed \n N = {n_nodes}, K = {neighbor_k}, Tau = {tau}, Cascade size = {cas}')
                     corr_fig_legend_label = [r'$C$',r'$T$',r'$\ell$',r'$R_g$']
                     for idx,p in enumerate(probabilities[::-1]):
                         C_label = str(network_props.loc[ix[:,network_type,p],:]['CC'].mean().round(2))
@@ -152,7 +152,7 @@ for network_type in network_class:
                             axs.tick_params(axis='x',labelsize=7)
                             axs.tick_params(axis='y',labelsize=7)
 
-                    axs.text(0.055,0.5,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
+                    axs.text(0.055,0.9,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
                     axs.text(0.69,0.9,r'{\fontfamily{phv}\selectfont   \textbf{Complex}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
                     axs.grid(False)
                     # plt.show()

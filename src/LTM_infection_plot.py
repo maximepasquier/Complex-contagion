@@ -21,7 +21,7 @@ def extend_points(val,counts):
 #with open(f'LTM_latence/ws/1000/16/32/0/infected_p=Network_p=0.0.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/infected_p=Network_p=0.1.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/infected_p=Network_p=0.21544346900318823.json', 'r') as f:
-with open(f'LTM_latence/ws/1000/16/32/0/infected_p=Network_p=0.021544346900318832.json', 'r') as f:
+with open(f'LTM/ws/1000/16/32/infected_p=Network_p=0.021544346900318832.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/64/0/infected_p=Network_p=0.0.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/64/0/infected_p=Network_p=0.1.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/64/0/infected_p=Network_p=0.21544346900318823.json', 'r') as f:

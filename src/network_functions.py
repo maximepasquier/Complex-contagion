@@ -204,7 +204,7 @@ def linear_threshold_memory_model(G,threshold,tau,weights,seed_nodes=None,init_s
         #proportion_true = []
         #while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
         waiting_counter = 0
-        waiting_counter_max = 1
+        waiting_counter_max = 10
         end_simulation = False
         while (not np.all(infected) and (i < max_iter) and not end_simulation):
             #+ Test de stagnation

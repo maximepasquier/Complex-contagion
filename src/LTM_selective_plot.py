@@ -54,9 +54,9 @@ curve_list.append(("LTM","ws",1000,16,64,0.1))
 curve_list.append(("LTM","ws",1000,16,64,0.5))
 '''
 curve_list.append(("LTM","ws",1000,16,32))
-curve_list.append(("LTM_latence","ws",1000,16,32))
+#curve_list.append(("LTM_latence","ws",1000,16,32))
 curve_list.append(("LTM","ws",1000,16,64))
-curve_list.append(("LTM_latence","ws",1000,16,64))
+#curve_list.append(("LTM_latence","ws",1000,16,64))
 
 #* Read CSV files and get data
 curve_data = []
@@ -138,7 +138,7 @@ for idx,p in enumerate(curve_data[0][2][::-1]):
         tau_label = str(curve[4])
         #pers_label = str(curve[5])
         
-        label_string =r'${}'.format(tau_label)
+        label_string =r'${}$'.format(tau_label)
             
         pol_fig_legend_label = label_string
         
@@ -153,7 +153,7 @@ for idx,p in enumerate(curve_data[0][2][::-1]):
         axs.set_ylim([1*10**-4,1.1])
         axs.set_xlim([-0.02,0.56])
         ## Legend and title
-        legend0 = axs.legend(title=r' $  Tau \;\, |\;\;\, Pers  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
+        legend0 = axs.legend(title=r' $  Tau  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
         # legend0 = axs.legend(title=r' $  C \;\, | \;\, \ell  \;\:  |\;\;\, R_{g} $', framealpha=1, facecolor='white',loc=[0.535,0.3],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
         legend0.get_title().set_position((1.5,0))
         legend0.get_title().set_fontsize('7')

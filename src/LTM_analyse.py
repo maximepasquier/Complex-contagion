@@ -43,8 +43,8 @@ for network_type in network_class:
             #cascades = list(map(str,list(np.round(np.linspace(0.1,0.9,9),1))))
 
             #* Charger les fichiers polarization.csv et props.csv pour les simulations n'utilisant pas les mécanismes de mémoire (props.csv reste le même dans les 2 cas)
-            nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/{0}/props.csv'
-            base_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/{0}/polarization.csv'
+            nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/props.csv'
+            base_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/polarization.csv'
 
 
             network_props=pd.read_csv(nets_prop_file,sep='\t')
@@ -103,7 +103,7 @@ for network_type in network_class:
                     
                     for tau in Tau:
                         #for pers in Persuasion:
-                        if tau == 0 and pers == 0:
+                        if tau == 0:
                             # Plot la courbe pour la simulation sans mémoire
                             axs.plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0  |  0$')
                             continue
@@ -119,7 +119,7 @@ for network_type in network_class:
                         tau_label = str(tau)
                         #pers_label = str(pers)
                         
-                        label_string =r'${}'.format(tau_label)
+                        label_string =r'${}$'.format(tau_label)
                             
                         pol_fig_legend_label = label_string
                         

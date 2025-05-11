@@ -240,7 +240,7 @@ threshold = np.linspace(0.01,0.5,16) # we choose the threshold for the LTM
 
 
 selector = ['top'] #['top','top','rand','bot','bot'] # centrality selector
-percentage = [int(n/20)]# [int(n/20),int(n/10),0,-int(n/20),-int(n/10)] # number of nodes to choose
+percentage = [int(n/20)]# [int(n/20),int(n/10),0,-int(n/20),-int(n/10)] # number of nodes to choose. Ici 5%
 
 for k in ks:
     for centrality,percen in zip(selector,percentage):
