@@ -26,37 +26,25 @@ cascade = 0.3 # select only 30% cascades
 
 #* Curves to plot
 curve_list = []
-#curve_i = (<network_root>,<network_class>,<N>,<K>,<Tau>,<Persuasion>)
-'''
-curve_list.append(("LTM","ws",1000,8,2,0))
-curve_list.append(("LTM","ws",1000,8,4,0))
-curve_list.append(("LTM","ws",1000,8,16,0))
-curve_list.append(("LTM","ws",1000,8,64,0))
+#curve_i = (<network_root>,<network_class>,<N>,<K>,<Tau>)
 
-curve_list.append(("LTM","ws",1000,16,2,0))
-curve_list.append(("LTM","ws",1000,16,4,0))
-curve_list.append(("LTM","ws",1000,16,16,0))
-curve_list.append(("LTM","ws",1000,16,64,0))
-
-curve_list.append(("LTM","ws",1000,8,0,0.01))
-curve_list.append(("LTM","ws",1000,8,0,0.1))
-curve_list.append(("LTM","ws",1000,8,0,0.5))
-curve_list.append(("LTM","ws",1000,8,0,1))
-
-curve_list.append(("LTM","ws",1000,16,0,0.01))
-curve_list.append(("LTM","ws",1000,16,0,0.1))
-curve_list.append(("LTM","ws",1000,16,0,0.5))
-curve_list.append(("LTM","ws",1000,16,0,1))
-
-curve_list.append(("LTM","ws",1000,16,32,0.1))
-curve_list.append(("LTM","ws",1000,16,32,0.5))
-curve_list.append(("LTM","ws",1000,16,64,0.1))
-curve_list.append(("LTM","ws",1000,16,64,0.5))
-'''
+'''curve_list.append(("LTM","ws",1000,16,0))
+curve_list.append(("LTM","ws",1000,16,1))
+curve_list.append(("LTM","ws",1000,16,2))
+curve_list.append(("LTM","ws",1000,16,4))
+curve_list.append(("LTM","ws",1000,16,8))
+curve_list.append(("LTM","ws",1000,16,16))
 curve_list.append(("LTM","ws",1000,16,32))
-#curve_list.append(("LTM_latence","ws",1000,16,32))
-curve_list.append(("LTM","ws",1000,16,64))
-#curve_list.append(("LTM_latence","ws",1000,16,64))
+curve_list.append(("LTM","ws",1000,16,64))'''
+
+curve_list.append(("LTM","ws",1000,8,0))
+curve_list.append(("LTM","ws",1000,8,1))
+curve_list.append(("LTM","ws",1000,8,2))
+curve_list.append(("LTM","ws",1000,8,4))
+curve_list.append(("LTM","ws",1000,8,8))
+curve_list.append(("LTM","ws",1000,8,16))
+curve_list.append(("LTM","ws",1000,8,32))
+curve_list.append(("LTM","ws",1000,8,64))
 
 #* Read CSV files and get data
 curve_data = []

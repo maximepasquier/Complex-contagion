@@ -231,7 +231,7 @@ def get_ave_shortest_path(G):
 
 model = 'LTM'
 n = 1000
-ks = [8,16]
+ks = [16]
 network_type = 'ws' # or 'mhk'
 
 cascades = np.round(np.linspace(0.1,0.9,9),1) # we run for all casscades, you can be specific

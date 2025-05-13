@@ -204,8 +204,10 @@ def linear_threshold_memory_model(G,threshold,tau,weights,seed_nodes=None,init_s
         #proportion_true = []
         #while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
         waiting_counter = 0
-        waiting_counter_max = 10
+        waiting_counter_max = 1
         end_simulation = False
+        # Test avec un masque qui vaut true partout
+        #mask = np.full_like(infected, True, dtype=bool)
         while (not np.all(infected) and (i < max_iter) and not end_simulation):
             #+ Test de stagnation
             if i-1 not in infection_step:
@@ -228,12 +230,12 @@ def linear_threshold_memory_model(G,threshold,tau,weights,seed_nodes=None,init_s
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
                 
-            Opti = False
+            Opti = True
             if(not Opti):
-                # Test avec un masque qui vaut true partout
-                #mask = np.full_like(infected, True, dtype=bool)
                 #* Standard implementation
                 #memory_matrix[:,-1] = T.dot(infected + memory_persuasion)
+                # Test avec un masque qui vaut true partout
+                #memory_matrix[:,-1] = T[mask].dot(infected)
                 memory_matrix[:,-1] = T.dot(infected)
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
@@ -244,18 +246,22 @@ def linear_threshold_memory_model(G,threshold,tau,weights,seed_nodes=None,init_s
                 # Sans recalculer tous les noeuds !!!
                 # Ne regarder que les voisins non-infectés des noeuds infectés
                 #print("computing index_noeud_hors_infection")
+                #+ Cas 2
+                #index_noeud_non_infectes = np.logical_xor(np.full_like(infected, True, dtype=bool),infected.astype(bool)) # noeuds non-infectés
+                #+ Cas 3
                 index_noeud_hors_infection = ~np.any(T[infected == 1] != 0, axis=0) # indices des noeuds non-infectés pas en contact avec des noeuds infectés
-                # np.full_like(infected, True, dtype=bool), init tout les noeuds à True pour le calcul
+                #   np.full_like(infected, True, dtype=bool), init tout les noeuds à True pour le calcul
                 index_noeud_non_infectes_en_contact = np.logical_xor(np.full_like(infected, True, dtype=bool),np.logical_or(infected.astype(bool),index_noeud_hors_infection)) # noeuds non-infectés en contact avec des noeuds infectés
-                #proportion_true.append((sum(index_noeud_non_infectes_en_contact) / len(index_noeud_non_infectes_en_contact)) * 100)
-                #print(f"Proportion de True : {proportion_true[-1]:.2f}%")
-                #np.place(memory_matrix[:,-1],index_noeud_non_infectes_en_contact, T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion))
-                #print("computing memory_matrix")
+                #   proportion_true.append((sum(index_noeud_non_infectes_en_contact) / len(index_noeud_non_infectes_en_contact)) * 100)
+                #   print(f"Proportion de True : {proportion_true[-1]:.2f}%")
+                #   np.place(memory_matrix[:,-1],index_noeud_non_infectes_en_contact, T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion))
+                #   print("computing memory_matrix")
                 
-                #+ Option 1 : sous dot product sur une sous matrice => très très lent
-                #memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
-                #+ Option 2 : utiliser Numba pour faire manuellement le dot product
-                compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact)
+                #+ Cas 2 et 3 : sous dot product sur une sous matrice => très très lent
+                #memory_matrix[index_noeud_non_infectes,-1] = T[index_noeud_non_infectes].dot(infected)
+                memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected)
+                #+ Cas 4 : utiliser Numba pour faire manuellement le dot product
+                #compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact)
                 
                 #print("computing infected + infected_step")
                 infected[memory_matrix @ weights >= th] = 1

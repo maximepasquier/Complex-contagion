@@ -27,8 +27,8 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 network_root = 'LTM'
 network_class = ['ws']
 N = [1000]
-K = [8,16]
-Tau = [0,1,2,4,8,16,32,64]
+K = [16]
+Tau = [0]
 # Le mécanisme de persuasion est désactivé
 #Persuasion = [0]
 cascades = np.round(np.linspace(0.1,0.9,9),1)

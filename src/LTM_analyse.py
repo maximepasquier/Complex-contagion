@@ -86,7 +86,7 @@ for network_type in network_class:
                     
             for cas in cascades[:]:
                 for idx,p in enumerate(probabilities[::-1]):
-                    fig,axs = plt.subplots(figsize=(7,5),sharex=True,sharey=False,tight_layout=True)
+                    fig,axs = plt.subplots(figsize=(7,3),sharex=True,sharey=False,tight_layout=True)
                     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
                     axs.get_xaxis().get_major_formatter().set_scientific(False)
                     ### Plotting loop
@@ -105,7 +105,7 @@ for network_type in network_class:
                         #for pers in Persuasion:
                         if tau == 0:
                             # Plot la courbe pour la simulation sans mémoire
-                            axs.plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0  |  0$')
+                            axs.plot(base_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),base_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-',label=r'$0$')
                             continue
                         #* Charger le fichier polarization.csv pour les simulations utilisant les mécanismes de mémoire
                         eval_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}//polarization.csv'
@@ -124,7 +124,7 @@ for network_type in network_class:
                         pol_fig_legend_label = label_string
                         
                         # Plot les courbes pour les simulations avec mémoire
-                        axs.plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='--', label=pol_fig_legend_label)
+                        axs.plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-', label=pol_fig_legend_label)
                             
 
                     # Set scale stuff
@@ -134,7 +134,7 @@ for network_type in network_class:
                     axs.set_ylim([1*10**-4,1.1])
                     axs.set_xlim([-0.02,0.56])
                     ## Legend and title
-                    legend0 = axs.legend(title=r' $  Tau \;\, |\;\;\, Pers  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
+                    legend0 = axs.legend(title=r' $  Tau  $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
                     # legend0 = axs.legend(title=r' $  C \;\, | \;\, \ell  \;\:  |\;\;\, R_{g} $', framealpha=1, facecolor='white',loc=[0.535,0.3],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
                     legend0.get_title().set_position((1.5,0))
                     legend0.get_title().set_fontsize('7')
