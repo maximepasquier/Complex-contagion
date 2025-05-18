@@ -18,12 +18,14 @@ Output :
 
 #* Paramètres de réseau
 network_root = 'Networks'
-probabilities = np.append([0], np.logspace(-3,-0,10))
-probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
-probabilities = [probabilities[3]]
-network_class = ['ws']
+#probabilities = np.append([0], np.logspace(-3,-0,10)) # ws
+probabilities = np.array([0.5,0.8,0.95,1.0]) # mhk
+#probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
+#probabilities = [probabilities[3]]
+#network_class = ['ws']
+network_class = ['mhk']
 N = [1000]
-K = [16]
+K = [8,16]
 
 #* Création des réseaux
 for network_type in network_class:
@@ -42,7 +44,11 @@ for network_type in network_class:
             for p in probabilities:
                 if graph_realized[p] == 1: # déjà un graph créé pour ce rewiring
                     continue
-                G = ws_network(n,k,p,seed=None)
+                if network_type == 'mhk':
+                    # Crée le réseau de type mhk
+                    G = mhk_network(n,k,p,seed=None)
+                elif network_type == 'ws':
+                    G = ws_network(n,k,p,seed=None)
                 # Add relevant creation properties with the graph.
                 # Nomme les graph en fonction de p
                 G.graph_properties['ID'] = G.new_graph_property('string',val="Network_p="+str(p))
