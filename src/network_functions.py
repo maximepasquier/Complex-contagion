@@ -106,7 +106,7 @@ def compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact,memory_
             memory_matrix[ligne, -1] = somme
     
 
-def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,optimisation,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None):
+def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisation,memory_saturation,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None):
     
     '''
     Mémoire de persuasion : Un vecteur de taille n est initialement rempli de 0.
@@ -154,6 +154,32 @@ def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,op
             f.write(line + '\n')
     '''
     
+    '''
+    Continue la simulation tant que : 
+        1. tous les noeuds ne sont pas infectés
+        2. le nombre d'itérations max n'est pas dépassé
+        3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
+    '''
+    '''
+    Construire une matrice de weights dont chaque ligne est un vecteur de weights pour les tau premières itérations. Pour le reste de la simulation
+    on conserve le vecteur de weights complet.
+    '''
+    weights = np.zeros((tau+1),dtype=float)
+    weights_matrix = np.zeros((tau+1,tau+1),dtype=float)
+    for index in range(weights_matrix.shape[0]):
+        pad_size = tau-index
+        #print(np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0))
+        weights_matrix[index,:] = np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0)
+    
+    '''   
+    #print(weights_matrix)
+    with open("weights_matrix.txt", 'w') as f:
+        for row in weights_matrix:
+            line = ' '.join(f"{val:4.2f}" for val in row)
+            f.write(line + '\n')
+    '''
+    #print(weights)
+    
     for th in threshold:
         infected = np.zeros(G.num_vertices(),dtype=int)
         infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
@@ -185,9 +211,10 @@ def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,op
         #Initial spread, if choosen
         if init_spread:
             infected[T.dot(infected) > 0] = 1
-            for i in range(tau+1):
-                # Memory filled with initial configuration
-                memory_matrix[:,i] = T.dot(infected)
+            if memory_saturation:
+                for i in range(tau+1):
+                    # Memory filled with initial configuration
+                    memory_matrix[:,i] = T.dot(infected)
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
             waiting_vector[0] = 0
             waiting_iterator = 1
@@ -195,12 +222,7 @@ def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,op
         else:
             waiting_iterator = 0
             i = 0
-        '''
-        Continue la simulation tant que : 
-            1. tous les noeuds ne sont pas infectés
-            2. le nombre d'itérations max n'est pas dépassé
-            3. on n'est pas dans une situation de stagnation (pas d'infection à l'itération précédente)
-        '''
+        
         #proportion_true = []
         #while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
         waiting_counter = 0
@@ -224,7 +246,7 @@ def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,op
             #    memory_persuasion[infected != 0] += persuasion_step # incrémente si le noeuds à l'incide est infecté
             
             #* Mécanisme d'inertie
-            if(tau != 0):
+            if(tau != 0): # pas forcément nécessaire
                 # Shift columns one position left
                 memory_matrix = np.roll(memory_matrix, shift=-1, axis=1)
                 # Update last column of matrix with current state
@@ -235,6 +257,8 @@ def linear_threshold_memory_model(G,threshold,tau,weights,waiting_counter_max,op
                 # Test avec un masque qui vaut true partout
                 #memory_matrix[:,-1] = T[mask].dot(infected)
                 memory_matrix[:,-1] = T.dot(infected)
+                if i <= tau:
+                    weights = weights_matrix[i]
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i
             else:

@@ -25,13 +25,11 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 
 #* Paramètres de simulation
 network_root = 'LTM'
-#network_class = ['ws']
-network_class = ['mhk']
+network_class = ['ws','mhk']
 N = [1000]
 K = [8,16]
-#K = [8]
 waiting_counter_max = [1,5,10,20,50,100] # nombre max d'itérations admise entre deux pas d'évolution
-Tau = [0,1,2,4,8,16,32,64]
+Tau = [8]
 #waiting_counter_max = [20]
 #Tau = [8]
 # Le mécanisme de persuasion est désactivé
@@ -43,6 +41,7 @@ threshold = np.linspace(0.01,0.5,16)
 # Si percent_of_seeds < 0, alors on prend un pourcentage de noeuds avec le plus petit degré
 fraction_of_seeds = 0.05 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
 optimisation = False # True si on veut "optimiser" le code
+memory_saturation = True # Si True alors la mémoire tau est saturée par l'état initial au début de la simulation
 
 # Paramètres de dataframe
 cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()
@@ -62,7 +61,7 @@ for network_type in network_class:
                     print("Running simulation : network_type =",network_type,", N =",n,", K =",k,", w =",w,", t =",t)
                     print()
                     # Génère un vecteur de poids pour le mécanisme d'inertie
-                    weights = gen_weights(t)
+                    #weights = gen_weights(t)
                     # The polirization file counter
                     count = 0
                     nets_prop_file =  f'{network_root}/{network_type}/{n}/{k}/{w}/{t}/props.csv'
@@ -134,7 +133,7 @@ for network_type in network_class:
 
                         for seed in seed_nodes:
                             #* Modèle complet (inertie + persuasion)
-                            infected_vectormap,waiting_dict, _, _ = linear_threshold_memory_model(G,threshold,t,weights,w,optimisation,seed_nodes=[seed])
+                            infected_vectormap,waiting_dict, _, _ = linear_threshold_memory_model(G,threshold,t,w,optimisation,memory_saturation,seed_nodes=[seed])
                             spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                             data = np.empty((len(threshold),len(cascades),)) * np.nan
                             for idx,th in enumerate(threshold):
