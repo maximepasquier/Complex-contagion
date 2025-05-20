@@ -28,8 +28,8 @@ network_root = 'LTM'
 network_class = ['ws','mhk']
 N = [1000]
 K = [8,16]
-waiting_counter_max = [1,5,10,20,50,100] # nombre max d'itérations admise entre deux pas d'évolution
-Tau = [8]
+waiting_counter_max = [1] # nombre max d'itérations admise entre deux pas d'évolution
+Tau = [0]
 #waiting_counter_max = [20]
 #Tau = [8]
 # Le mécanisme de persuasion est désactivé
@@ -41,7 +41,7 @@ threshold = np.linspace(0.01,0.5,16)
 # Si percent_of_seeds < 0, alors on prend un pourcentage de noeuds avec le plus petit degré
 fraction_of_seeds = 0.05 # pourcentage de noeuds pour seed_nodes (exemple : int(n/20))
 optimisation = False # True si on veut "optimiser" le code
-memory_saturation = True # Si True alors la mémoire tau est saturée par l'état initial au début de la simulation
+memory_saturation = False # Si True alors la mémoire tau est saturée par l'état initial au début de la simulation
 
 # Paramètres de dataframe
 cols=['ID', 'network', 'p','th', 'seed']+ cascades.astype('str').tolist()

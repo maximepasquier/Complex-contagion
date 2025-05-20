@@ -165,11 +165,14 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
     on conserve le vecteur de weights complet.
     '''
     weights = np.zeros((tau+1),dtype=float)
-    weights_matrix = np.zeros((tau+1,tau+1),dtype=float)
-    for index in range(weights_matrix.shape[0]):
-        pad_size = tau-index
-        #print(np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0))
-        weights_matrix[index,:] = np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0)
+    if memory_saturation:
+        weights = gen_weights(tau)
+    else:
+        weights_matrix = np.zeros((tau+1,tau+1),dtype=float)
+        for index in range(weights_matrix.shape[0]):
+            pad_size = tau-index
+            #print(np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0))
+            weights_matrix[index,:] = np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0)
     
     '''   
     #print(weights_matrix)
@@ -210,15 +213,18 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
 
         #Initial spread, if choosen
         if init_spread:
+            i = 0
             infected[T.dot(infected) > 0] = 1
             if memory_saturation:
-                for i in range(tau+1):
+                for ligne in range(tau+1):
                     # Memory filled with initial configuration
-                    memory_matrix[:,i] = T.dot(infected)
+                    memory_matrix[:,ligne] = T.dot(infected)
+            if i <= tau and not memory_saturation:
+                weights = weights_matrix[i]
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
             waiting_vector[0] = 0
             waiting_iterator = 1
-            i = 1
+            i += 1
         else:
             waiting_iterator = 0
             i = 0
@@ -239,6 +245,7 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
                 waiting_counter = 0
             if waiting_counter >= waiting_counter_max:
                 end_simulation = True
+                continue
                 #print("Stagnation detected")
             #print("iteration : ",i)
             # Mécanisme de persuasion
@@ -257,7 +264,7 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
                 # Test avec un masque qui vaut true partout
                 #memory_matrix[:,-1] = T[mask].dot(infected)
                 memory_matrix[:,-1] = T.dot(infected)
-                if i <= tau:
+                if i <= tau and not memory_saturation:
                     weights = weights_matrix[i]
                 infected[memory_matrix @ weights >= th] = 1
                 infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = i

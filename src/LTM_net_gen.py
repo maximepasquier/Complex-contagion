@@ -23,7 +23,7 @@ probabilities = np.array([0.5,0.8,0.95,1.0]) # mhk
 #probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
 #probabilities = [probabilities[3]]
 #network_class = ['ws']
-network_class = ['mhk']
+network_class = ['ws','mhk']
 N = [1000]
 K = [8,16]
 
