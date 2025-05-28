@@ -25,12 +25,11 @@ de la vitesse de polarisation en fonction du seuil. Les courbes se regroupent su
 network_root = 'LTM'
 network_class = ['ws','mhk']
 N = [1000]
-K = [8,16]
-waiting_counter_max = [1,5,10,20,50,100] # nombre max d'itérations admise entre deux pas d'évolution
-Tau = [1,2,4,8,16,32,64]
-#Persuasion = [0,0.01,0.05,0.1,0.2,0.5,1]
+K = [16]
+waiting_counter_max = [0] # nombre max d'itérations admise entre deux pas d'évolution
+Tau = [0,1,2,4,8,16,32,64]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
-cascades = [cascades[2]]
+cascades = [cascades[2],cascades[7]] # 0.3 et 0.8
 
 #* Plotting
 for network_type in network_class:               
@@ -87,11 +86,11 @@ for network_type in network_class:
                     probabilities = np.sort(mpol.loc[ix[:,:,network_type],:].index.get_level_values(0).unique())[pick_props[network_type]]
                     
                     for cas in cascades[:]:
-                        fig,axs = plt.subplots(figsize=(7,3),sharex=True,sharey=False,tight_layout=True)
+                        fig,axs = plt.subplots(figsize=(5,4),sharex=True,sharey=False,tight_layout=True)
                         fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
                         axs.get_xaxis().get_major_formatter().set_scientific(False)
                         ### Plotting loop
-                        axs.set_title(f'Polarization speed \n N = {n_nodes}, K = {neighbor_k}, Tau = {tau}, Cascade size = {cas}')
+                        axs.set_title(f'Polarization speed, Network = {network_type},\n N = {n_nodes}, K = {neighbor_k}, Tau = {tau}, Cascade size {int(100*cas)}\%')
                         corr_fig_legend_label = [r'$C$',r'$T$',r'$\ell$',r'$R_g$']
                         for idx,p in enumerate(probabilities[::-1]):
                             C_label = str(network_props.loc[ix[:,network_type,p],:]['CC'].mean().round(2))
@@ -136,7 +135,7 @@ for network_type in network_class:
                         axs.set_yscale('log')
                         axs.set_ylabel(r'Polarization Speed $(v)$',labelpad=2.5)
                         axs.set_xlabel(r'Threshold $( \theta )$',labelpad=2,math_fontfamily='cm')
-                        axs.set_ylim([1*10**-4,1.1])
+                        axs.set_ylim([1*10**-3,1.1])
                         axs.set_xlim([-0.02,0.56])
                         ## Legend and title
                         legend0 = axs.legend(title=r' $  C \;\, |\;\;\, T \;\,| \;\,\: \ell  \;\:\,  |\;\;\, R_{g} $', framealpha=1, facecolor='white',loc=[1.1,0],edgecolor='w',borderpad=0.2,markerscale=0.8,handlelength=1.4,handletextpad=0.4,fontsize=7)
@@ -145,7 +144,7 @@ for network_type in network_class:
                         legend0.get_title().set_fontsize('7')
                         
 
-                        axs.text(-0.02,1.03,r'\textbf{(a)}',transform=axs.transAxes,fontsize=8)
+                        #axs.text(-0.02,1.03,r'\textbf{(a)}',transform=axs.transAxes,fontsize=8)
 
                         box_props = dict(alpha=1,facecolor='w',linewidth=0,zorder=100000,boxstyle='round',pad=0.5)
                         ##Set background color to transitions
@@ -156,7 +155,7 @@ for network_type in network_class:
                                 axs.tick_params(axis='x',labelsize=7)
                                 axs.tick_params(axis='y',labelsize=7)
 
-                        axs.text(0.055,0.9,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
+                        axs.text(0.055,0.1,r'{\fontfamily{phv}\selectfont  \textbf{Simple}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
                         axs.text(0.69,0.9,r'{\fontfamily{phv}\selectfont   \textbf{Complex}}',transform=axs.transAxes,bbox=box_props,fontsize=7,fontdict={'family':'sans-serif'})
                         axs.grid(False)
                         # plt.show()

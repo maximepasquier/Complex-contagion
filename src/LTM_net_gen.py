@@ -18,17 +18,21 @@ Output :
 
 #* Paramètres de réseau
 network_root = 'Networks'
-#probabilities = np.append([0], np.logspace(-3,-0,10)) # ws
-probabilities = np.array([0.5,0.8,0.95,1.0]) # mhk
-#probabilities = probabilities[[0,5,7,8]] # filtre sur les valeurs de probabilités
-#probabilities = [probabilities[3]]
-#network_class = ['ws']
+probabilities_ws = np.append([0], np.logspace(-3,-0,10)) # ws
+probabilities_ws = probabilities_ws[[0,5,7,8]] # filtre sur les valeurs de probabilités
+probabilities_mhk = np.array([0.5,0.8,0.95,0.99,1.0]) # mhk
 network_class = ['ws','mhk']
-N = [1000]
-K = [8,16]
+N = [500]
+K = [16]
 
 #* Création des réseaux
 for network_type in network_class:
+    if network_type == 'ws':
+        probabilities = probabilities_ws
+    elif network_type == 'mhk':
+        probabilities = probabilities_mhk
+    else:
+        raise ValueError(f"Unknown network type: {network_type}")
     for n in N:        
         for k in K:
             # Crée le dossier pour les réseaux

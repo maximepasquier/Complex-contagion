@@ -93,20 +93,19 @@ def ke_network(n,m):
     return T
 
 # La fonction compute() modifie les valeurs de memory_matrix qui est ici passée en référence car Numpy
-# La fonction doit faire ceci : memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
+# La fonction fait ceci : memory_matrix[index_noeud_non_infectes_en_contact,-1] = T[index_noeud_non_infectes_en_contact].dot(infected + memory_persuasion)
 @njit
-def compute(memory_matrix,T,infected,index_noeud_non_infectes_en_contact,memory_persuasion=None):
+def compute(memory_matrix,T,infected,index_noeud_mask,memory_persuasion=None):
     #* Implémentation optimisée du dot product
     for ligne in range(T.shape[0]):
-        if index_noeud_non_infectes_en_contact[ligne]:
+        if index_noeud_mask[ligne]:
             somme = 0.0
             for colonne in range(T.shape[1]):
                 #somme += T[ligne, colonne] * (infected[colonne] + memory_persuasion[colonne])
                 somme += T[ligne, colonne] * (infected[colonne])
             memory_matrix[ligne, -1] = somme
-    
 
-def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisation,memory_saturation,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None):
+def linear_threshold_memory_model(G,threshold,tau,optimisation,memory_saturation,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None,waiting_counter_max=None):
     
     '''
     Mémoire de persuasion : Un vecteur de taille n est initialement rempli de 0.
@@ -134,9 +133,9 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
         [threshold]
 
     infections = []
-    #waiting_vector_list = []
-    waiting_dict = {}
+    #waiting_dict = {}
     degree_dist = G.get_out_degrees(G.get_vertices())
+    #print(degree_dist)
 
     # T est la matrice d'adjacence normalisée par le degré des noeuds
     T = np.array((graph_tool.spectral.adjacency(G).T.toarray() / degree_dist).T)
@@ -145,11 +144,6 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
     with open("matrice_T.txt", 'w') as f:
         for row in T:
             # Formater chaque valeur : 4 caractères, 1 chiffre après la virgule
-            line = ' '.join(f"{val:4.2f}" for val in row)
-            f.write(line + '\n')
-            
-    with open("matrice_T.T.txt", 'w') as f:
-        for row in T.T:
             line = ' '.join(f"{val:4.2f}" for val in row)
             f.write(line + '\n')
     '''
@@ -171,22 +165,11 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
         weights_matrix = np.zeros((tau+1,tau+1),dtype=float)
         for index in range(weights_matrix.shape[0]):
             pad_size = tau-index
-            #print(np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0))
             weights_matrix[index,:] = np.pad(gen_weights(index), (pad_size,0), mode='constant', constant_values=0)
-    
-    '''   
-    #print(weights_matrix)
-    with open("weights_matrix.txt", 'w') as f:
-        for row in weights_matrix:
-            line = ' '.join(f"{val:4.2f}" for val in row)
-            f.write(line + '\n')
-    '''
-    #print(weights)
     
     for th in threshold:
         infected = np.zeros(G.num_vertices(),dtype=int)
         infection_step = np.full(G.num_vertices(),np.inf,dtype=float)
-        #node_list = np.arange(G.num_vertices(),dtype=int)
 
         #Infect the seed nodes
         infected[seed_nodes] = 1
@@ -195,13 +178,15 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
         
         # Vecteur de taille n défini à 0
         #memory_persuasion = np.zeros(G.num_vertices(),dtype=float)
+        
         # Matrix of memory + current (last column)
         memory_matrix = np.zeros((G.num_vertices(),tau+1),dtype=float)
+        
         # Vecteur de waiting counter pour la stagnation
         # Chaque composante du vecteur correspond au nombre d'itérations de waiting entre deux infections
         # "0" veut dire que l'état infectieux du système à changé directement à l'itération suivante
         # "1" veut dire que l'état infectieux du système à changé après une itération de waiting, etc...
-        waiting_vector = np.zeros(G.num_vertices(),dtype=int)
+        #waiting_vector = np.zeros(G.num_vertices(),dtype=int)
 
         '''
         T.dot(infected) : donne un vecteur de taille n avec la somme des états d'infection des voisins
@@ -222,20 +207,21 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
             if i <= tau and not memory_saturation:
                 weights = weights_matrix[i]
             infection_step[np.logical_and(infected > 0, np.isinf(infection_step))] = 0
-            waiting_vector[0] = 0
-            waiting_iterator = 1
+            #waiting_vector[0] = 0
+            #waiting_iterator = 1
             i += 1
         else:
-            waiting_iterator = 0
+            #waiting_iterator = 0
             i = 0
         
         #proportion_true = []
-        #while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
-        waiting_counter = 0
-        end_simulation = False
+        #waiting_counter = 0
+        #end_simulation = False
         # Test avec un masque qui vaut true partout
         #mask = np.full_like(infected, True, dtype=bool)
-        while (not np.all(infected) and (i < max_iter) and not end_simulation):
+        while (not np.all(infected) and (i < max_iter) and i-1 in infection_step):
+        #while (not np.all(infected) and (i < max_iter) and not end_simulation):
+            '''
             #+ Test de stagnation
             if i-1 not in infection_step:
                 waiting_counter += 1
@@ -243,9 +229,10 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
                 waiting_vector[waiting_iterator] = waiting_counter
                 waiting_iterator += 1
                 waiting_counter = 0
-            if waiting_counter >= waiting_counter_max:
+            if waiting_counter > waiting_counter_max:
                 end_simulation = True
                 continue
+            '''
                 #print("Stagnation detected")
             #print("iteration : ",i)
             # Mécanisme de persuasion
@@ -301,7 +288,7 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
         infected_step = G.new_vp(value_type='int',vals=infection_step)
         infections.append(infected_step)
         #waiting_vector_list.append(waiting_vector[:waiting_iterator])
-        waiting_dict[th] = waiting_vector[:waiting_iterator]
+        #waiting_dict[th] = waiting_vector[:waiting_iterator]
         '''
         with open("prop_true.txt", 'a') as f:
             for valeur in proportion_true:
@@ -312,7 +299,7 @@ def linear_threshold_memory_model(G,threshold,tau,waiting_counter_max,optimisati
     infected_vectormap = gt.group_vector_property(infections)
     threshold_vector = G.new_gp(value_type='vector<double>',val=threshold)
 
-    return infected_vectormap, waiting_dict, seed_nodes, threshold_vector
+    return infected_vectormap, seed_nodes, threshold_vector
 
 def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter=None):
     """
