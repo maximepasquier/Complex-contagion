@@ -26,16 +26,18 @@ network_root = 'LTM'
 network_class = ['ws','mhk']
 N = [1000]
 K = [16]
-waiting_counter_max = [0] # nombre max d'itérations admise entre deux pas d'évolution
+#waiting_counter_max = [0] # nombre max d'itérations admise entre deux pas d'évolution
 Tau = [0,1,2,4,8,16,32,64]
 cascades = np.round(np.linspace(0.1,0.9,9),1)
 cascades = [cascades[2],cascades[7]] # 0.3 et 0.8
+seed_types = ['top','rand','bot'] # types de seed_nodes
+fraction_of_seeds = 0.05 # fraction de noeuds pour seed_nodes
 
 #* Plotting
 for network_type in network_class:               
     for n_nodes in N:
         for neighbor_k in K:
-            for w in waiting_counter_max:
+            for seed_type in seed_types:
                 for tau in Tau:
                     #for pers in Persuasion:
                     ix = pd.IndexSlice
@@ -45,8 +47,8 @@ for network_type in network_class:
                     ## Pick which cascade sizes are consider, valid choises are 0.1,0.2,...,0.9
                     #cascades = list(map(str,list(np.round(np.linspace(0.1,0.9,9),1))))
 
-                    nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{w}/{tau}/props.csv'
-                    polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{w}/{tau}/polarization.csv'
+                    nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/props.csv'
+                    polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{tau}/{seed_type}{fraction_of_seeds}polarization.csv'
 
 
                     network_props=pd.read_csv(nets_prop_file,sep='\t')
@@ -90,7 +92,7 @@ for network_type in network_class:
                         fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.4, hspace=None)
                         axs.get_xaxis().get_major_formatter().set_scientific(False)
                         ### Plotting loop
-                        axs.set_title(f'Polarization speed, Network = {network_type},\n N = {n_nodes}, K = {neighbor_k}, Tau = {tau}, Cascade size {int(100*cas)}\%')
+                        axs.set_title(f'Polarization speed, Network = {network_type}, {seed_type} {int(100*fraction_of_seeds)}\%\n N = {n_nodes}, K = {neighbor_k}, Tau = {tau}, Cascade size {int(100*cas)}\%')
                         corr_fig_legend_label = [r'$C$',r'$T$',r'$\ell$',r'$R_g$']
                         for idx,p in enumerate(probabilities[::-1]):
                             C_label = str(network_props.loc[ix[:,network_type,p],:]['CC'].mean().round(2))
@@ -161,10 +163,10 @@ for network_type in network_class:
                         # plt.show()
                         # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')
                         if save:
-                            fig_path = f'figs/visualize/{network_type}/{n_nodes}/{neighbor_k}/{w}/{tau}'
+                            fig_path = f'figs/visualize/{network_type}/{n_nodes}/{neighbor_k}/{tau}'
                             if not os.path.exists(fig_path):
                                 os.makedirs(fig_path)
-                            fig.savefig(fig_path + f'/LTM_{cas}.pdf')
+                            fig.savefig(fig_path + f'/Visualize_{network_type}_{n_nodes}_{neighbor_k}_{tau}_{seed_type}_{fraction_of_seeds}_{cas}.pdf')
                             print('fig saved')
                         else:
                             fig.show()

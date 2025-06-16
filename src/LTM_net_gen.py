@@ -22,7 +22,7 @@ probabilities_ws = np.append([0], np.logspace(-3,-0,10)) # ws
 probabilities_ws = probabilities_ws[[0,5,7,8]] # filtre sur les valeurs de probabilités
 probabilities_mhk = np.array([0.5,0.8,0.95,0.99,1.0]) # mhk
 network_class = ['ws','mhk']
-N = [500]
+N = [5000]
 K = [16]
 
 #* Création des réseaux

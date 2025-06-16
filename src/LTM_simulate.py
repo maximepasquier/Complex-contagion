@@ -25,11 +25,11 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 
 #* Paramètres de simulation
 network_root = 'LTM' # dossier de sortie
-network_class = ['ws'] # type de réseaux
-N = [500] # nombre de noeuds
+network_class = ['ws', 'mhk'] # type de réseaux
+N = [5000] # nombre de noeuds
 K = [16] # nombre de voisins moyen
 #waiting_counter_max = [0] # nombre max d'itérations admise entre deux pas d'évolution : 0 signifie consécutif
-Tau = [0] # taille de la mémoire
+Tau = [0,1,2,4,8,16,32,64] # taille de la mémoire
 cascades = np.round(np.linspace(0.1,0.9,9),1) # tailles des cascades
 threshold = np.linspace(0.01,0.5,16) # thresholds
 '''
@@ -37,7 +37,7 @@ Si top, alors on prend le pourcentage de noeuds avec le plus grand degré
 Si bot, alors on prend le pourcentage de noeuds avec le plus petit degré
 Si rand, alors on prend le pourcentage des noeuds au hasard
 '''
-seed_types = ['top','bot','rand'] # types de seed_nodes
+seed_types = ['top'] # types de seed_nodes
 fraction_of_seeds = 0.05 # fraction de noeuds pour seed_nodes
 optimisation = False # True si on veut "optimiser" le code
 memory_saturation = False # Si True alors la mémoire tau est saturée par l'état initial au début de la simulation
@@ -48,6 +48,10 @@ b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 
 for network_type in network_class:
     for n in N:
+        if n == 5000:
+            fraction_of_seeds = 0.01
+        if n == 1000:
+            fraction_of_seeds = 0.05
         nb_seed_nodes = int(n * fraction_of_seeds) # nombre de seed_nodes        
         for k in K: 
             network_props = pd.DataFrame(data=b)

@@ -371,11 +371,11 @@ def linear_threshold_model(G,threshold,seed_nodes=None,init_spread=True,max_iter
 def gen_weights(tau):
     # Weight vector
     # Define weights values (different methods)
-    # 1 : linear
+    #* 1 : linear
     weights = np.linspace(1/(tau+1), 1, tau+1)
-    # 2 : log
-    #weights = np.logspace(1/(tau+1), 1, tau+1, base=10)
-    # 3 : uniform
+    #* 2 : log
+    #weights = np.logspace(1/(tau+1), 1, tau+1, base=20)
+    #* 3 : uniform
     #weights = np.full(tau+1,1)
     # Reverse alpha vector
     #weights = np.flip(weights)
