@@ -1,5 +1,9 @@
 from utils import *
 from itertools import islice
+'''
+Analyse le fichier json produit par LTM_simulation.py et produit des graphiques de la distribution des valeurs pour chaque threshold.
+'''
+
 # Étape 1 : Charger les données depuis le fichier JSON
 with open(f'LTM/ws/1000/16/100/32/waiting_dct_p=Network_p=0.0.json', 'r') as f:
 #with open(f'LTM_latence/ws/1000/16/32/0/waiting_dct_p=Network_p=0.1.json', 'r') as f:

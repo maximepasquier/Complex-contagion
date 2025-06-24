@@ -1,6 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+'''
+Ce script génère et normalise des poids linéaires et logarithmiques pour une période donnée (tau).
+Ca a pour but de visualiser les poids en fonction de tau, en utilisant des poids linéaires et logarithmiques.
+'''
+
 # Paramètres
 tau = 8
 

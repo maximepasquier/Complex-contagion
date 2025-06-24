@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+'''
+Ce script visualise l'influence des biais de persuasion sur le nombre d'infectés dans un modèle de propagation.
+'''
+
 def g(a,b):
     return a/b
 

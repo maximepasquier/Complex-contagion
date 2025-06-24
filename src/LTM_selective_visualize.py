@@ -19,6 +19,7 @@ de la vitesse de polarisation en fonction du seuil. Les courbes se regroupent su
     - Les mêmes cascades
     - Des paramètres de mémoire différents (Tau et Persuasion)
     - Des réseaux avec un rewiring différent
+Il suffit d'append à curve_list les paramètres de simulation pour obtenir les courbes désirées.
 ''' 
 
 #* Paramètres de simulation

@@ -11,6 +11,10 @@ Input :
     - Tau : liste de taille de la mémoire
     - cascades : liste de taille de cascade
     - threshold : liste de seuils
+    - seed_types : liste de types de seed_nodes
+    - fraction_of_seeds : fraction de noeuds pour seed_nodes
+    - optimisation : True si on veut "optimiser" le code
+    - memory_saturation : Si True alors la mémoire tau est saturée par l'état initial au début de la simulation
     - percent_of_seeds : pourcentage de noeuds pour seed_nodes
     
 Output :
@@ -18,7 +22,7 @@ Output :
     - Polarization.csv : fichier contenant les vitesses de polarisations
     - Props.csv : fichier contenant les propriétés du réseau
 
-Le script run les analyses sur les réseaux défini par les paramètres de simulations ainsi que ceux générés par le script LTM_net_gen.py.
+Le script run les LTM sur les réseaux défini par les paramètres de simulations ainsi que ceux générés par le script LTM_net_gen.py.
 Des listes de N, K, Tau et Persuasion, toutes les cominaison de configurations sont générées et exécutées. 
 Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{network_type}/{N}/{K}/{Tau}/{Persuasion}
 '''  
@@ -26,7 +30,7 @@ Tous les résultats (polarization.csv et props.csv) sont stockés dans : LTM/{ne
 #* Paramètres de simulation
 network_root = 'LTM' # dossier de sortie
 network_class = ['ws', 'mhk'] # type de réseaux
-N = [5000] # nombre de noeuds
+N = [1000] # nombre de noeuds
 K = [16] # nombre de voisins moyen
 #waiting_counter_max = [0] # nombre max d'itérations admise entre deux pas d'évolution : 0 signifie consécutif
 Tau = [0,1,2,4,8,16,32,64] # taille de la mémoire
@@ -49,9 +53,9 @@ b = {'ID':[],'network':[], 'CC':[],'T':[],'p':[],'SP':[]}
 for network_type in network_class:
     for n in N:
         if n == 5000:
-            fraction_of_seeds = 0.01
+            fraction_of_seeds = 0.01 # => 50 simulations au total
         if n == 1000:
-            fraction_of_seeds = 0.05
+            fraction_of_seeds = 0.05 # => 50 simulations au total
         nb_seed_nodes = int(n * fraction_of_seeds) # nombre de seed_nodes        
         for k in K: 
             network_props = pd.DataFrame(data=b)
@@ -143,7 +147,13 @@ for network_type in network_class:
                         print(f"Execution time for loading and running graph {G.gp.ID} : {end - start:.4f} secondes")
                         
                         '''
-                        #* Select que la dernière seed (1 seule simulation) pour l'écriture dans les json
+                        L'écriture dans les fichiers JSON donne le détail de la propagation des infections pour chaque seuil pour UNE simulation.
+                        Ceci va permettre de visualiser la propagation des infections pour chaque seuil de cette simulation. Sinon tous les autres 
+                        résultats sont des moyennes sur les simulations. Ici nous souhaitons observer 1 seul cas à la fois.
+                        '''
+                        
+                        '''
+                        #* Select que la dernière seed (1 seule simulation) pour l'écriture dans un JSON
                         data_json = {}
                         spread = gt.ungroup_vector_property(infected_vectormap,range(len(threshold)))
                         for idx,th in enumerate(threshold):

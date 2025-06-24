@@ -1,5 +1,9 @@
 from utils import *
 
+'''
+Analyse le fichier json produit par LTM_simulation.py et produit des graphiques de l'évolution des propagations pour chaque threshold.
+'''
+
 def extend_points(val,counts):
     """
     Fonction pour étendre les points de val et counts

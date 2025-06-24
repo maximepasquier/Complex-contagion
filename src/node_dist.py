@@ -3,12 +3,17 @@ from utils import *
 from network_functions import *
 
 '''
+Produit les bar plots de la distribution des degrés des noeuds des graphes.
+
 Exemple avec :
 
 mhk
 N = 1000
 K = 16
 p = 0.5,0.95,0.99,1.0
+
+Output :
+figs/node_dist/...
 '''
 
 network_root = 'Networks'

@@ -1,5 +1,10 @@
 from utils import *
 
+'''
+Analyse le fichier json produit par LTM_simulation.py et produit des graphiques de l'évolution des propagations pour chaque threshold
+avec des temps de waiting différents. Ces résultats ont pour objectif de montrer la superposition des courbes de propagation.
+'''
+
 def extend_points(val,counts):
     """
     Fonction pour étendre les points de val et counts

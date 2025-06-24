@@ -108,6 +108,8 @@ def compute(memory_matrix,T,infected,index_noeud_mask,memory_persuasion=None):
 def linear_threshold_memory_model(G,threshold,tau,optimisation,memory_saturation,seed_nodes=None,init_spread=True,max_iter=None,persuasion_step=None,waiting_counter_max=None):
     
     '''
+    Run le LTM avec les mécanismes de mémoire d'inertie et de persuasion. Par défaut la persuasion et le temps de waiting sont désactivés.
+    
     Mémoire de persuasion : Un vecteur de taille n est initialement rempli de 0.
     A chaque itération de la simulation les valeurs de tous les indexes dont les noeuds sont infectés, 
     sont incrémentés d'un pas défini par l'incrément "persuasion_step"
@@ -233,7 +235,7 @@ def linear_threshold_memory_model(G,threshold,tau,optimisation,memory_saturation
                 end_simulation = True
                 continue
             '''
-                #print("Stagnation detected")
+            #print("Stagnation detected")
             #print("iteration : ",i)
             # Mécanisme de persuasion
             #if(persuasion_step != 0): # la valeur de 0 n'active pas le mécanisme de mémoire persuasive

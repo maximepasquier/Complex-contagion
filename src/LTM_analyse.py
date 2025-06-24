@@ -7,18 +7,20 @@ Input :
     - network_class : liste des classes de réseau
     - N : liste de nombre de noeuds
     - K : liste de nombre de voisins moyen
-    - Persuasion : liste de biais de persuasion
     - Tau : liste de taille de la mémoire
+    - seed_types : liste de types de seed_nodes
+    - fraction_of_seeds : fraction de noeuds pour seed_nodes
     - cascades : liste de taille de cascade
     
 Output :
-    - plots...
+    - /figs/analyse/... : dossier contenant les figures d'analyse des simulations LTM
 
 Le script analyse les résultats des simulations de LTM pour l'ensemble des paramètres spécifés et produit des graphiques 
 de la vitesse de polarisation en fonction du seuil. Les courbes se regroupent suivant :
     - Les mêmes réseaux
     - Les mêmes cascades
-    - Des paramètres de mémoire différents (Tau et Persuasion)
+    - Les mêmes types de seed_nodes
+    - Des paramètres de mémoire différents (Tau)
 '''  
 
 #* Paramètres de simulation
@@ -51,7 +53,6 @@ for network_type in network_class:
                 nets_prop_file =  f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/props.csv'
                 base_polarization_file = f'{network_root}/{network_type}/{n_nodes}/{neighbor_k}/{0}/{seed_type}{fraction_of_seeds}polarization.csv'
 
-
                 network_props=pd.read_csv(nets_prop_file,sep='\t')
                 network_props.set_index(['ID','network','p'],inplace=True)
 
@@ -66,7 +67,7 @@ for network_type in network_class:
                 # mpol est une dataframe avec comme colonnes les valeurs moyennées pour les niveau de cascades
                 # 'p' 'th' et 'network' sont des multiindexes (pas apparent dans la df)
                 base_mpol = base_polarization.groupby(['p','th','network']).mean()
-                #Get mean polarization on network from seeds
+                # Get mean polarization on network from seeds
                 # Similaire à mpol mais avec 'ID' en plus
                 polarization_mean = base_polarization.groupby(level=[0,1,2,3]).mean()
 
@@ -85,11 +86,8 @@ for network_type in network_class:
                 elif network_type == 'mhk':
                     pick_props = {'mhk':probabilities_index_list}
 
-
                 flag_l_label=0
                 probabilities = np.sort(base_mpol.loc[ix[:,:,network_type],:].index.get_level_values(0).unique())[pick_props[network_type]]
-                
-
                         
                 for cas in cascades[:]:
                     for idx,p in enumerate(probabilities[::-1]):
@@ -104,7 +102,6 @@ for network_type in network_class:
                         r_label = r_label + r'\! \times \! 10^{3}'
                         axs.set_title(f'Cascade size {int(100*cas)}\%, {seed_type} {int(100*fraction_of_seeds)}\%\n' + r'$Network = {}, N = {}, K = {}$'.format(network_type,n_nodes,neighbor_k))
                         #corr_fig_legend_label = [r'$C$',r'$T$',r'$\ell$',r'$R_g$']
-
                         
                         for tau in Tau:
                             #for pers in Persuasion:
@@ -130,8 +127,7 @@ for network_type in network_class:
                             
                             # Plot les courbes pour les simulations avec mémoire
                             axs.plot(eval_mpol.loc[ix[p,:,network_type],f'{cas}'].index.get_level_values(1),eval_mpol.loc[ix[p,:,network_type],f'{cas}'],ls='-', label=pol_fig_legend_label)
-                                
-
+                            
                         # Set scale stuff
                         axs.set_yscale('log')
                         axs.set_ylabel(r'Polarization Speed $(v)$',labelpad=2.5)
@@ -160,9 +156,6 @@ for network_type in network_class:
                         
                         # Zone de texte pour infos sur le réseau
                         axs.text(0.75, 0.85,"C   |   T   |   L   |   Rg\n" + r'${}  |  {}  |  {}  |  {} $'.format(C_label,T_label,l_label,r_label), transform=axs.transAxes,bbox=box_props,fontsize=8,fontdict={'family':'sans-serif'}, verticalalignment='top', horizontalalignment='center')
-                        
-                        
-                        
                         
                         # plt.show()
                         # fig.savefig(f'figures/fig1/{network}/fig1_{cas}.pdf')

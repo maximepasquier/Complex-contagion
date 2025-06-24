@@ -1,7 +1,7 @@
 # The code goes through the graphs and generate bunch of poliarization files
 
 '''
-Benchmark code used for validation
+Benchmark code used for validation : source Mohammad Savari
 '''
 
 import numpy as np
